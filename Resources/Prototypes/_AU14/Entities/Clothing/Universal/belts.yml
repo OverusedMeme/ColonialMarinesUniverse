@@ -52,6 +52,36 @@
 
 - type: entity
   parent: CMBeltMedicBag
+  id: AU14BeltMedicBagColonistFilled #I apologize in advance for making yet another Filled Variant of the Livesaver bag
+  suffix: Filled, Colonist
+  componets:
+  - type: StorageFill
+    contents:
+    - id: CMPillCanisterDexalin
+    - id: CMPillCanisterDylovene
+    - id: CMPillCanisterInaprovaline
+    - id: CMPillCanisterKelotane
+    - id: CMPillCanisterBicaridine
+    - id: CMPillCanisterKelotane
+    - id: CMPillCanisterTricordrazine
+    - id: RMCPillCanisterIron
+    - id: AU14PillCanisterTramadol
+    - id: AU14PillCanisterOxycodone
+    - id: AU14PillCanisterOsteoCalc
+    - id: CMEpinephrineAutoInjector
+    - id: CMEpinephrineAutoInjector
+    - id: AU14NaloxoneAutoInjector
+      amount: 2
+    - id: CMSurgicalLine
+    - id: CMSynthGraft
+    - id: CMPortableSurgicalBedSpawnFolded
+    - id: CMRollerBedSpawnFolded
+    - id: CMHealthAnalyzer
+    - id: CMUCastItem
+    - id: CMUSplintItem
+
+- type: entity
+  parent: CMBeltMedicBag
   id: AU14BeltMedicBagBlack
   suffix: Empty, Black
   components:
