@@ -71,7 +71,6 @@
     - id: CMEpinephrineAutoInjector
     - id: CMEpinephrineAutoInjector
     - id: AU14NaloxoneAutoInjector
-      amount: 2
     - id: CMSurgicalLine
     - id: CMSynthGraft
     - id: CMPortableSurgicalBedSpawnFolded

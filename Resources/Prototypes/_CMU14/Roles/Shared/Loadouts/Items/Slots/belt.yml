@@ -41,4 +41,4 @@
 - type: loadout
   id: BeltMedicBagFilledAU14
   equipment:
-    belt: AU14BeltMedicBagColonistFilled
+    belt: AU14BeltMedicBagColonistFilled [Filled]
