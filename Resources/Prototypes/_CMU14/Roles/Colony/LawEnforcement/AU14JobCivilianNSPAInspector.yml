@@ -29,11 +29,18 @@
     icon:
       sprite: /Textures/_RMC14/Interface/cm_job_icons.rsi
       state: tse_painspector
+  - type: Language
+    preset: AU14LanguagePresetTWE
 
   name: au14-job-name-civiliannspainspector
   description: au14-job-description-civiliannspainspector
   setPreference: false
   canBeAntag: false
+  requirements:
+  - !type:TraitsRequirement
+    inverted: true
+    traits:
+    - NoEnglish
   ranks:
     RMCRankCivilian: []
   chevrons:
@@ -57,17 +64,22 @@
   id: AU14GearCivilianNSPAInspector
   equipment:
     id: AU14IDCardColonyNSPAInspector
-    outerClothing: RMCCoatTSEPA
+    back: RMCSatchelTSEPA
     jumpsuit: RMCJumpsuitTSEPA
     shoes: RMCBootsPMCFilled
     head: RMCHeadCapTSEPAPeakedGold
     belt: CMBeltSecurityMarshalFilled
-    back: RMCSatchelTSEPA
     ears: AU14CMBHeadset
-    pocket1: AU14StampNSPA
+    outerClothing: RMCCoatTSEPA
+    suitstorage: AU14BeltHolsterPistolBlack
+    pocket1: AU14PouchIFAKFill
+    pocket2: AU14PouchGeneralLargeLEOFilled
+  inhand:
+  - AU14GunCasePistolL45
   storage:
     back:
     - AU14GuidebookLawColonial
+    - AU14StampNSPA
 
 - type: entity
   parent: CMSpawnPointJobBase

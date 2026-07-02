@@ -1,16 +1,17 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Content.Server.AU14.Threats;
+using Content.Server._CMU14.Threats;
 using Content.Server.GameTicking.Presets;
 using Content.Server.Maps;
+using Content.Shared._CMU14.Threats;
 using Content.Shared._RMC14.Rules;
 using Content.Shared.AU14;
-using Content.Shared.AU14.Threats;
 using Robust.Shared.ContentPack;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
+using KillAllColonistRuleComponent = Content.Shared._CMU14.Threats.Rules.KillAllColonistRuleComponent;
 
 namespace Content.IntegrationTests._AU14.Threats;
 
@@ -58,7 +59,7 @@ public sealed class DistressSignalThreatMarkerTest
             foreach (var planetId in preset.SupportedPlanets)
             {
                 var planetProto = prototypes.Index<EntityPrototype>(planetId);
-                if (!planetProto.TryGetComponent<RMCPlanetMapPrototypeComponent>(out var planet, factory))
+                if (!planetProto.TryComp<RMCPlanetMapPrototypeComponent>(out var planet, factory))
                     continue;
 
                 if (planet.AllowedThreats.Any(threat => threat.Id == TribalThreat) &&
@@ -95,7 +96,7 @@ public sealed class DistressSignalThreatMarkerTest
                 foreach (var ruleId in threat.WinConditions)
                 {
                     var rulePrototype = prototypes.Index<EntityPrototype>(ruleId);
-                    if (rulePrototype.TryGetComponent<KillAllColonistRuleComponent>(out _, factory))
+                    if (rulePrototype.TryComp<KillAllColonistRuleComponent>(out _, factory))
                         offenders.Add($"{threat.ID}:{ruleId}");
                 }
             }
@@ -124,7 +125,7 @@ public sealed class DistressSignalThreatMarkerTest
             foreach (var planetId in preset.SupportedPlanets)
             {
                 var planetProto = prototypes.Index<EntityPrototype>(planetId);
-                if (!planetProto.TryGetComponent<RMCPlanetMapPrototypeComponent>(out var planet, factory))
+                if (!planetProto.TryComp<RMCPlanetMapPrototypeComponent>(out var planet, factory))
                     continue;
 
                 var gameMap = prototypes.Index<GameMapPrototype>(planet.MapId);
@@ -185,7 +186,7 @@ public sealed class DistressSignalThreatMarkerTest
 
             foreach (var planetProto in prototypes.EnumeratePrototypes<EntityPrototype>())
             {
-                if (!planetProto.TryGetComponent<RMCPlanetMapPrototypeComponent>(out var planet, factory))
+                if (!planetProto.TryComp<RMCPlanetMapPrototypeComponent>(out var planet, factory))
                     continue;
 
                 if (planet.AllowedThreats.All(threat => threat.Id != XenoThreat))
