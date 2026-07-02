@@ -23,6 +23,8 @@
     icon:
       sprite: /Textures/_RMC14/Interface/cm_job_icons.rsi
       state: cmb_dep
+  - type: Language
+    preset: AU14LanguagePresetUPPOfficer
 
   name: au14-job-name-civilianpapofficer
   description: au14-job-description-civilianpapofficer
@@ -35,6 +37,7 @@
     inverted: true
     traits:
     - Epilepsy
+    - NoEnglish
   playTimeTracker: AU14JobCivilianPaPOfficer
   ranks:
     RMCRankCivilian: []
@@ -64,10 +67,20 @@
   equipment:
     head: CMHeadCapSPPPeakedPolice
     jumpsuit: RMCJumpsuitSPPPaP
+    back: CMSatchelSecurity
     belt: CMBeltSecurityMarshalFilled
     shoes: RMCBootsPMCFilled
     id: AU14IDCardcivilianPaPOfficer
     ears: AU14CMBHeadset
+    outerClothing: RMCCoatPaP
+    suitstorage: AU14BeltHolsterPistolBlack
+    pocket1: AU14PouchIFAKFill
+    pocket2: AU14PouchGeneralLargeLEOFilled
+  inhand:
+  - AU14GunCasePistolT73
+  storage:
+    back:
+    - AU14GuidebookLawColonial
 
 - type: entity
   parent: CMSpawnPointJobBase

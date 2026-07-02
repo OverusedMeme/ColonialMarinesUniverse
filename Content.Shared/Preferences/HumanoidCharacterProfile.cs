@@ -5,7 +5,7 @@ using Content.Shared._RMC14.NamedItems;
 using Content.Shared._RMC14.Xenonids.Name;
 using Content.Shared.AU14.Allegiance;
 using Content.Shared.AU14.Origin;
-using Content.Shared.AU14.Threats;
+using Content.Shared._CMU14.Threats;
 using Content.Shared.CCVar;
 using Content.Shared.Clothing;
 using Content.Shared.GameTicking;
@@ -1080,7 +1080,7 @@ namespace Content.Shared.Preferences
             ArmorPreference = armorPreference;
 
             if (!prototypeManager.TryIndex(SquadPreference, out var squad) ||
-                !squad.TryGetComponent(out SquadTeamComponent? team, compFactory) ||
+                !squad.TryComp(out SquadTeamComponent? team, compFactory) ||
                 !team.RoundStart)
             {
                 SquadPreference = null;

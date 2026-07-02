@@ -1,20 +1,20 @@
 using System.IO;
 using System.Linq;
-using Content.Server.AU14.Threats;
+using Content.Server._CMU14.Threats;
+using Content.Server.Chat.Managers;
 using Content.Server.GameTicking.Presets;
 using Content.Server.Maps;
 using Content.Server.Spawners.Components;
+using Content.Shared._CMU14.Threats;
 using Content.Shared._RMC14.Rules;
 using Content.Shared.AU14;
 using Content.Shared.AU14.Scenario;
-using Content.Shared.AU14.Threats;
 using Content.Shared.AU14.util;
 using Robust.Shared.ContentPack;
-using Robust.Shared.GameObjects;
-using Robust.Shared.IoC;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
+using ParachuteMarkerComponent = Content.Shared._CMU14.Threats.ParachuteMarkerComponent;
 
 namespace Content.Server.AU14.Scenario;
 
@@ -26,8 +26,10 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
     private const string DistressSignalPresetId = "DistressSignal";
     private const string ColonyFallPresetId = "ColonyFall";
     private const string InsurgencyPresetId = "Insurgency";
+    private const int ScenarioPlanAnnouncementMaxDiagnosticLength = 500;
     private const string SmallestCandidateReservationPolicyId = "SmallestCandidateBodyCountAllowsUnderfill";
 
+    [Dependency] private IChatManager _chat = default!;
     [Dependency] private IComponentFactory _componentFactory = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IResourceManager _resources = default!;
@@ -91,7 +93,12 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
         if (usedBackup)
         {
             sawmill.Warning(
-                $"[ScenarioPlanSystem] Shadow Scenario Plan validation failed for {request.PresetId} ({reason}); using validated Voting Backup for planet {request.PlanetId} map {request.MapId}.");
+                $"[ScenarioPlanSystem] Shadow Scenario Plan validation failed for {request.PresetId} ({reason}); using validated Voting Backup for planet {request.PlanetId} map {request.MapId}. Diagnostic: {backupDiagnostic}");
+            AnnounceScenarioPlanFailure(
+                "au14-scenario-plan-failed-backup-announcement",
+                request,
+                reason,
+                backupDiagnostic);
         }
         else if (report.IsValid)
         {
@@ -102,6 +109,11 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
         {
             sawmill.Warning(
                 $"[ScenarioPlanSystem] Shadow Scenario Plan generated diagnostics for {request.PresetId} ({reason}): {report}. Backup diagnostic: {backupDiagnostic}");
+            AnnounceScenarioPlanFailure(
+                "au14-scenario-plan-failed-no-backup-announcement",
+                request,
+                reason,
+                report.ToString());
         }
 
         return snapshot;
@@ -123,20 +135,56 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
             return report;
         }
 
+        var markerDiagnostic = report.ToString();
+        var backupResolveDiagnostic = string.Empty;
         if (TryResolveVotingBackup(
                 request.PresetId,
                 request.PlanetId,
                 request.MapId,
                 request.PlayerCount,
                 out var backupPlan,
-                out backupDiagnostic) &&
+                out backupResolveDiagnostic) &&
             backupPlan != null)
         {
             usedBackup = true;
+            backupDiagnostic = markerDiagnostic;
             return new ScenarioPlanValidationReport(new[] { backupPlan }, backupPlan.Diagnostics);
         }
 
+        backupDiagnostic = backupResolveDiagnostic;
         return report;
+    }
+
+    private void AnnounceScenarioPlanFailure(
+        string locId,
+        ScenarioPlanValidationRequest request,
+        string reason,
+        string diagnostic)
+    {
+        _chat.DispatchServerAnnouncement(
+            Loc.GetString(locId,
+                ("preset", request.PresetId),
+                ("reason", reason),
+                ("planet", request.PlanetId ?? "<any>"),
+                ("map", request.MapId ?? "<any>"),
+                ("threat", request.SelectedThreatId ?? "<none>"),
+                ("diagnostic", PrepareAnnouncementDiagnostic(diagnostic))),
+            Color.Red);
+    }
+
+    private static string PrepareAnnouncementDiagnostic(string diagnostic)
+    {
+        if (string.IsNullOrWhiteSpace(diagnostic))
+            return "No diagnostic details were reported.";
+
+        diagnostic = diagnostic
+            .Replace('\r', ' ')
+            .Replace('\n', ' ');
+
+        if (diagnostic.Length <= ScenarioPlanAnnouncementMaxDiagnosticLength)
+            return diagnostic;
+
+        return $"{diagnostic[..ScenarioPlanAnnouncementMaxDiagnosticLength]}...";
     }
 
     private IReadOnlyList<ScenarioPlan> GeneratePlansForRuntimeResolution(
@@ -1132,6 +1180,7 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
         AddPlatoonForces(preset, planet, request.PlayerCount, forces, deferredChoices);
 
         if (IsPostRoundstartThreatVotePreset(preset.ID))
+        {
             AddDeferredThreatChoice(
                 preset.ID,
                 planetId,
@@ -1141,6 +1190,7 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
                 deferredChoices,
                 markers,
                 includedMarkerSources);
+        }
 
         if (preset.ID.Equals(InsurgencyPresetId, StringComparison.OrdinalIgnoreCase))
             AddClfForce(preset.ID, planetId, planet, request.PlayerCount, forces, diagnostics);
@@ -1327,7 +1377,7 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
 
     private bool TryBuildThirdPartyForce(
         string presetId,
-        AuThirdPartyPrototype thirdParty,
+        ThirdPartyPrototype thirdParty,
         string? threatId,
         int playerCount,
         out PlannedForce force)
@@ -1356,7 +1406,7 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
 
     private bool TryBuildThirdPartyForceFromPrototype(
         string roundGroupId,
-        AuThirdPartyPrototype thirdParty,
+        ThirdPartyPrototype thirdParty,
         string? threatId,
         int playerCount,
         out PlannedForce force,
@@ -1392,7 +1442,7 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
     }
 
     private bool TryBuildLegacyThirdPartyForce(
-        AuThirdPartyPrototype thirdParty,
+        ThirdPartyPrototype thirdParty,
         string? threatId,
         int playerCount,
         out PlannedForce force)
@@ -1442,7 +1492,7 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
     {
         foreach (var thirdPartyId in planet.ThirdParties)
         {
-            if (!_prototypes.TryIndex(thirdPartyId, out AuThirdPartyPrototype? thirdParty) ||
+            if (!_prototypes.TryIndex(thirdPartyId, out ThirdPartyPrototype? thirdParty) ||
                 !IsThirdPartyAllowed(
                     thirdParty,
                     presetId,
@@ -1942,7 +1992,7 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
             }
         }
 
-        if (!_prototypes.TryIndex<AuThirdPartyPrototype>(thirdPartyId, out var thirdParty))
+        if (!_prototypes.TryIndex<ThirdPartyPrototype>(thirdPartyId, out var thirdParty))
         {
             diagnostic = $"Third-party prototype '{thirdPartyId}' could not be resolved.";
             return false;
@@ -2265,7 +2315,7 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
         int count,
         List<ResolvedSpawnMarker> markers)
     {
-        if (entityPrototype.TryGetComponent<ScenarioSpawnMarkerComponent>(out var scenarioMarker, _componentFactory))
+        if (entityPrototype.TryComp<ScenarioSpawnMarkerComponent>(out var scenarioMarker, _componentFactory))
         {
             markers.Add(new ResolvedSpawnMarker(
                 prototypeId,
@@ -2273,16 +2323,16 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
                 ToScenarioMarkerKind(scenarioMarker.Kind),
                 ScenarioMarkerTagsFor(
                     scenarioMarker.Tags,
-                    entityPrototype.TryGetComponent<ParachuteMarkerComponent>(out _, _componentFactory)),
+                    entityPrototype.TryComp<ParachuteMarkerComponent>(out _, _componentFactory)),
                 count * Math.Max(1, scenarioMarker.Count),
                 sourcePath));
             return;
         }
 
-        if (entityPrototype.TryGetComponent<ThreatSpawnMarkerComponent>(out var threatMarker, _componentFactory))
+        if (entityPrototype.TryComp<ThreatSpawnMarkerComponent>(out var threatMarker, _componentFactory))
         {
             var thirdParty = threatMarker.ThirdParty;
-            var parachute = entityPrototype.TryGetComponent<ParachuteMarkerComponent>(out _, _componentFactory);
+            var parachute = entityPrototype.TryComp<ParachuteMarkerComponent>(out _, _componentFactory);
             markers.Add(new ResolvedSpawnMarker(
                 prototypeId,
                 mapId,
@@ -2292,7 +2342,7 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
                 sourcePath));
         }
 
-        if (entityPrototype.TryGetComponent<SafehouseMarkerComponent>(out _, _componentFactory))
+        if (entityPrototype.TryComp<SafehouseMarkerComponent>(out _, _componentFactory))
         {
             markers.Add(new ResolvedSpawnMarker(
                 prototypeId,
@@ -2303,7 +2353,7 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
                 sourcePath));
         }
 
-        if (entityPrototype.TryGetComponent<SpawnPointComponent>(out var spawnPoint, _componentFactory) &&
+        if (entityPrototype.TryComp<SpawnPointComponent>(out var spawnPoint, _componentFactory) &&
             spawnPoint.Job != null &&
             spawnPoint.Job.Value.Id.Equals(ColonyCivilianJobId, StringComparison.OrdinalIgnoreCase))
         {
@@ -2321,7 +2371,7 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
     {
         planet = default!;
         if (!_prototypes.TryIndex<EntityPrototype>(planetId, out var planetPrototype) ||
-            !planetPrototype.TryGetComponent<RMCPlanetMapPrototypeComponent>(out var planetComp, _componentFactory))
+            !planetPrototype.TryComp<RMCPlanetMapPrototypeComponent>(out var planetComp, _componentFactory))
         {
             return false;
         }
@@ -2477,18 +2527,18 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
                presetId.Equals(ColonyFallPresetId, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static bool ThirdPartyUsesMarkerValidation(AuThirdPartyPrototype thirdParty)
+    private static bool ThirdPartyUsesMarkerValidation(ThirdPartyPrototype thirdParty)
     {
         var entryMethod = thirdParty.EntryMethod?.ToLowerInvariant() ?? "ground";
         return entryMethod is "ground" or "parachute" or "shuttle";
     }
 
-    private static bool IsShuttleEntry(AuThirdPartyPrototype thirdParty)
+    private static bool IsShuttleEntry(ThirdPartyPrototype thirdParty)
     {
         return (thirdParty.EntryMethod?.ToLowerInvariant() ?? "ground") == "shuttle";
     }
 
-    private static bool IsParachuteEntry(AuThirdPartyPrototype thirdParty)
+    private static bool IsParachuteEntry(ThirdPartyPrototype thirdParty)
     {
         return (thirdParty.EntryMethod?.ToLowerInvariant() ?? "ground") == "parachute";
     }
@@ -2505,7 +2555,7 @@ public sealed partial class ScenarioPlanSystem : EntitySystem, IScenarioPlanGene
     }
 
     private static bool IsThirdPartyAllowed(
-        AuThirdPartyPrototype proto,
+        ThirdPartyPrototype proto,
         string currentGamemode,
         string? currentThreat,
         string? govforPlatoon,

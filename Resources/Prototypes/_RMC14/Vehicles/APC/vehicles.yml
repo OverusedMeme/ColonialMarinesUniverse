@@ -180,7 +180,6 @@
     slotCount: 1
   - type: HardpointIntegrity
     maxIntegrity: 1000
-    repairFuelCost: 15
     bypassEntryOnZero: true
   - type: Appearance
   - type: VehicleEnter
@@ -305,8 +304,8 @@
 - type: entity
   parent: VehicleAPCBase
   id: VehicleSPPAPC
-  name: SPP armored personnel carrier
-  description: An armored personnel carrier configured for SPP forces.
+  name: UPP armored personnel carrier
+  description: An armored personnel carrier configured for UPP forces.
   components:
   - type: GridVehicleMover
     maxSpeed: 5
@@ -343,16 +342,34 @@
     slots:
       port-gun-north:
         startingItem: null
+        insertOnInteract: false
+        ejectOnInteract: false
+        ejectOnUse: false
+        locked: true
+        disableEject: true
+        whitelist:
+          components:
+          - VehiclePortGun
       port-gun-south:
         startingItem: null
+        insertOnInteract: false
+        ejectOnInteract: false
+        ejectOnUse: false
+        locked: true
+        disableEject: true
+        whitelist:
+          components:
+          - VehiclePortGun
       primary:
         startingItem: VehicleSPPAPCTurret
+        insertOnInteract: false
         disableEject: true
         whitelist:
           components:
           - HardpointItem
       wheel-1:
         startingItem: VehicleSPPAPCWheel
+        insertOnInteract: false
         disableEject: true
         whitelist:
           components:

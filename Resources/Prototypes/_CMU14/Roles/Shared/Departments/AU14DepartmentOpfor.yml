@@ -11,10 +11,12 @@
   - AU14JobOPFORadvisor
   - AU14JobOPFORSectionSergeant
   - AU14JobOPFORSquadSergeant
+# - AU14JobOPFORWeaponsSpecialist
   - AU14JobOPFORRadioTelephoneOperator
   - AU14JobOPFORSquadRifleman
   - AU14JobOPFORSquadAutomaticRifleman
   - AU14JobOPFORSquadCombatTech
+  - AU14JobOPFORVehicleCrewman
   - AU14JobOPFORPlatoonCorpsman
   - AU14JobOPFORAuxTech
   - AU14JobOPFORDSPilot
