@@ -19,14 +19,8 @@
     sections:
     - name: Fatigues
       entries:
-      - id: AU14DesertFatigues
-        amount: 40
-      - id: AU14JungleFatigues
-        amount: 40
-      - id: AU14SnowFatigues
-        amount: 40
-      - id: AU14MixedSnowFatigues
-        amount: 40
+      - id: AU14CamoUSCMFatigues
+        amount: 120
     - name: Footwear
       entries:
       - id: CMBootsBlack
@@ -61,22 +55,14 @@
         amount: 2
     - name: Headgear
       entries:
-      - id: AU14DesertM10Helmet
+      - id: AU14CamoM10Helmet
+        amount: 65
+      - id: AU14CamoBoonieHat
         amount: 40
-      - id: AU14JungleM10Helmet
-        amount: 25
-      - id: AU14DesertBoonieHat
-        amount: 20
-      - id: AU14JungleBoonieHat
-        amount: 20
-      - id: AU14DesertPatrolCap
-        amount: 25
-      - id: AU14JunglePatrolCap
-        amount: 25
-      - id: AU14DesertFlapCap
-        amount: 15
-      - id: AU14JungleFlapCap
-        amount: 15
+      - id: AU14CamoPatrolCap
+        amount: 50
+      - id: AU14CamoFlapCap
+        amount: 30
       - id: AU14HeadCommandoBeanie
         amount: 10
       - id: RMCM5CameraGear
@@ -89,30 +75,20 @@
         amount: 8
     - name: Armor
       entries:
-      - id: AU14ArmorM3DesertOne
-        amount: 40
-      - id: AU14ArmorM3DesertTwo
-        amount: 40
-      - id: AU14ArmorM3DesertThree
-        amount: 40
-      - id: AU14ArmorM3JungleOne
-        amount: 25
-      - id: AU14ArmorM3JungleTwo
-        amount: 25
-      - id: AU14ArmorM3JungleThree
-        amount: 25
+      - id: AU14CamoArmorM3Smooth
+        amount: 65
+      - id: AU14CamoArmorM3Ribbed
+        amount: 65
+      - id: AU14CamoArmorM3Dimpled
+        amount: 65
     - name: Armor Components
       entries:
-      - id: AU14KitDesertArmor
-        amount: 40
-      - id: AU14KitJungleArmor
-        amount: 25
+      - id: AU14CamoKitArmor
+        amount: 65
       - id: AU14ArmorGarbShotgunShellHolder
         amount: 8
-      - id: AU14ArmorGarbJunglePoncho
-        amount: 25
-      - id: AU14ArmorGarbDesertPoncho
-        amount: 40
+      - id: AU14CamoArmorGarbPoncho
+        amount: 65
     - name: Backpack
       entries:
       - id: CMBackpackMarine
@@ -160,8 +136,6 @@
         amount: 3
       - id: RMCPouchMagazine
         amount: 50
-      - id: RMCPouchMagazineLarge
-        amount: 8
       - id: RMCPouchShotgunLarge
         amount: 8
       - id: RMCPouchGeneralMedium
@@ -170,8 +144,6 @@
         amount: 4
       - id: RMCPouchMagazinePistol
         amount: 25
-      - id: RMCPouchMagazinePistolLarge
-        amount: 6
       - id: RMCPouchPistol
         amount: 20
       - id: AU14PouchIFAKFill
@@ -236,20 +208,14 @@
         amount: 25
     - name: Helmet Garb
       entries:
-      - id: AU14HelmetGarbM10SkrimJungle
-        amount: 15
-      - id: AU14HelmetGarbM10SkrimDesert
-        amount: 15
-      - id: AU14HelmetGarbM10SkrimSnow
-        amount: 15
+      - id: AU14CamoHelmetGarbM10Skrim
+        amount: 45
       - id: AU14HelmetGarbM10RainCover
         amount: 40
       - id: AU14HelmetGarbM10Netting
         amount: 40
-      - id: RMCHelmetGarbGasmaskJungle
-        amount: 20
-      - id: RMCHelmetGarbGasmaskDesert
-        amount: 20
+      - id: AU14CamoHelmetGarbGasmask
+        amount: 40
     - name: Patches
       entries:
       - id: AU14PatchUAFlag
@@ -273,7 +239,13 @@
   - type: Sprite
     sprite: _RMC14/Structures/Machines/VendingMachines/ColMarTech/medical_gear.rsi
   - type: CMAutomatedVendor
-    jobs: [ AU14JobPlatoonCorpsmanBase, AU14JobGOVFORPlatoonCorpsman, AU14JobOPFORPlatoonCorpsman, AU14JobGOVFOROfficerMedical, AU14JobOPFOROfficerMedical ]
+    jobs:
+    - AU14JobGOVFORPlatoonCorpsman
+    - AU14JobGOVFOROfficerMedical
+    - AU14JobGOVFORAuxSupportSynth
+    - AU14JobOPFORPlatoonCorpsman
+    - AU14JobOPFOROfficerMedical
+    - AU14JobOPFORAuxSupportSynth
     sections:
     - name: Essential Equipment
       takeAll: CMUEssentialEquipment
@@ -600,9 +572,15 @@
     - name: Fatigues
       entries:
       - id: CMJumpsuitXOFormal
-        amount: 2
+        amount: 10
       - id: AU14USCMOperationsUniform
-        amount: 3
+        amount: 10
+    - name: Jackets
+      entries:
+      - id: RMCCoatAllWeather
+        amount: 10
+      - id: RMCCoatService
+        amount: 10
     - name: Footwear
       entries:
       - id: CMBootsBlack
@@ -613,10 +591,8 @@
         amount: 5
     - name: Headgear
       entries:
-      - id: AU14DesertM11Helmet
-        amount: 5
-      - id: AU14JungleM11Helmet
-        amount: 5
+      - id: AU14CamoM11Helmet
+        amount: 10
       - id: CMHeadCapPeakedFormal
         amount: 5
       - id: CMHeadCapPeakedService
@@ -624,10 +600,8 @@
       - id: RMCHeadBeretSquad
         amount: 5
         name: Black Beret
-      - id: AU14JunglePatrolCap
-        amount: 5
-      - id: AU14DesertPatrolCap
-        amount: 5
+      - id: AU14CamoPatrolCap
+        amount: 10
     - name: Backpack
       entries:
       - id: RMCBackpackRTO
@@ -691,8 +665,7 @@
     - name: Smartgun Harness
       choices: { SmartgunHarness: 1 }
       entries:
-      - id: AU14ArmorSmartGunDesertCombatHarness
-      - id: AU14ArmorSmartGunJungleCombatHarness
+      - id: AU14CamoArmorSmartGunCombatHarness
     - name: Smartgun Belts
       choices: { SmartgunBelts: 1 }
       entries:
@@ -720,12 +693,10 @@
     - name: Helmets and Hats
       choices: { CMHat: 1 }
       entries:
-      - id: AU14DesertM11Helmet
-      - id: AU14JungleM11Helmet
+      - id: AU14CamoM11Helmet
       - id: RMCHeadBeretSquad
         name: Black Beret
-      - id: AU14JunglePatrolCap
-      - id: AU14DesertPatrolCap
+      - id: AU14CamoPatrolCap
     - name: Equipment
       takeAll: CMStandard
       entries:
@@ -1096,12 +1067,13 @@
       - id: RMCSatchelWelderChestrig
       - id: RMCSatchelWelder
     - name: Engineering Storage Pouch
-      choices: { CMUPouchesCT: 1 }
+      choices: { CMUPouchesCT: 2 }
       entries:
       - id: RMCPouchConstruction
         recommended: true
+      - id: RMCPouchEngineerKit
       - id: RMCPouchElectronics
-    - name: Engineering Supplies
+    - name: Engineering Materials
       entries:
       - id: CMSheetMetal50
         name: metal x50
@@ -1111,22 +1083,52 @@
         name: plasteel x50
         points: 10
         recommended: true
-      - id: CMAPCElectronics
+      - id: CMSandbagEmpty50
+        name: sandbags x50
+        points: 4
+      - id: RMCPlankWood
+        name: wood x50
         points: 2
-      - id: DoorElectronics
+    - name: Engineering Supplies
+      entries:
+      - id: CMFoldingBarricadesMB6x3
+        name: MB-6 folding barricade x3
+        points: 5
+      - id: MaintenanceJack
+        points: 5
+      - id: RMCShovel
         points: 2
-      - id: CMUDeployableZLevelLadder
-        points: 10
+      - id: RMCES11MobileFuelCanister
+        points: 5
+      - id: RMCPowerCell
+        points: 2
       - id: RMCPowerCellHigh
-        points: 3
+        points: 4
       - id: RMCPowerCellSuper
         points: 8
       - id: RMCMagazineSMGNailgun
         points: 5
+      - id: RMCEngineerKit
+        points: 5
+      - id: CMAPCElectronics
+        points: 2
+      - id: DoorElectronics
+        points: 2
+      - id: RMCPortableGeneratorPacmanMachineCircuitBoard
+        name: PACMAN generator machine board
+        points: 8
+      - id: RMCPortableGeneratorSuperPacmanMachineCircuitboard
+        name: super PACMAN generator machine board
+        points: 12
+      - id: CMSheetPhoron30
+        name: phoron x30
+        points: 12
     #- id: CMES11MobileFuelCanister
     #  points: 4
     - name: Explosives
       entries:
+      - id: RMCGrenadeCustomMetalFoam
+        points: 10
       - id: RMCExplosivePlastic
         points: 5
       - id: RMCExplosiveBreachingCharge
@@ -1141,7 +1143,7 @@
   parent: CMVendorBundleRiflemanApparel
   id: AU14VendorBundleCombatTechnicianEssentials
   name: essential engineer set
-  description: Contains 50 metal, 50 plasteel, 50 sandbags, a high-capacity power cell, a light replacer, a welding visor, and a nailgun.
+  description: Contains 50 metal, 50 plasteel, 50 sandbags, a high-capacity power cell, a light replacer, a deployable ladder, a welding visor, welding goggles, and a nailgun.
   components:
   - type: Sprite
     sprite: _RMC14/Objects/Tools/wrench.rsi
@@ -1149,6 +1151,7 @@
   - type: CMVendorBundle
     bundle:
     - RMCExplosivePlastic
+    - CMUDeployableZLevelLadder
     - RMCEngineerKit
     - CMSandbagEmpty50
     - RMCPlankWood
@@ -1159,6 +1162,7 @@
     - CMAPCElectronics
     - RMCNailgunTactical
     - RMCVisorWelding
+    - RMCWeldingGoggles
     - RMCSentryLaptop
 
 - type: entity
@@ -1172,7 +1176,7 @@
     state: firstaid
   - type: CMVendorBundle
     bundle:
-    - RMCVisorMedical
+    - RMCVisorMedicalAdvanced
     - RMCGlassesMedicalHUDGlasses
     - AU14CMDefibrillator
     - CMHealthAnalyzer
@@ -1214,25 +1218,27 @@
     - name: Uniform
       choices: { AU14Uniform: 1 }
       entries:
-      - id: AU14DesertFatigues
+      - id: AU14CamoUSCMFatigues
     - name: Footwear
       choices: { AU14FootWear: 1 }
       entries:
       - id: CMBootsBlack
       - id: CMBootsBrown
     - name: Hat
-      choices: { CMHat: 1 }
+      choices: { CMHat: 2 }
       entries:
       - id: CMHeadCapMP
       - id: CMHeadBeretRed
     - name: Helmet
       choices: { AU14Helmet: 1 }
       entries:
-      - id: AU14DesertM10MPHelmet
+      - id: AU14CamoM10Helmet
     - name: Vest
       choices: { AU14vest: 1 }
       entries:
-      - id: AU14ArmorM3DesertOne
+      - id: AU14CamoArmorM3Smooth
+      - id: AU14CamoArmorM3Ribbed
+      - id: AU14CamoArmorM3Dimpled
     - name: Backpack
       choices: { CMBackpack: 1 }
       entries:
@@ -1357,6 +1363,28 @@
         amount: 100
       - id: RMCSpeedLoader44Marksman
         amount: 10
+    - name: Magazine Boxes
+      entries:
+      - id: CMUBoxMagazineRifleM54CMK1
+        amount: 2
+      - id: RMCBoxMagazineSMGM63
+        amount: 2
+      - id: RMCBoxMagazinePistolM1984
+        amount: 2
+      - id: RMCBoxMagazinePistolM77AP
+        amount: 2
+    - name: Ammo Boxes
+      entries:
+      - id: RMCBoxBulletsRifle
+        amount: 5
+      - id: RMCBoxBulletsSMG
+        amount: 5
+      - id: RMCBoxBulletsSmartGun
+        amount: 5
+      - id: CMUBoxBulletsPistol9MM
+        amount: 5
+      - id: CMUBoxBulletsPistol9MMAP
+        amount: 5
     - name: explosives
       entries:
       - id: CMPacketGrenadeHighExplosiveFilled
@@ -1445,6 +1473,12 @@
         amount: 4
       - id: RMCOuterClothingExternalWebbing
         amount: 4
+    - name: Pouches
+      entries:
+      - id: RMCPouchMagazineLarge
+        amount: 10
+      - id: RMCPouchMagazinePistolLarge
+        amount: 10
     - name: Devices
       entries:
       - id: RMCIntelDetector
