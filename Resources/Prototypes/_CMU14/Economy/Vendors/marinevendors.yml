@@ -1,5 +1,5 @@
 # Apparel, medic, aircrew, command, smartgun, section-leader, weapons, special-weapons,
-# equipment (universal), RTO (universal), aircrew-weapons (universal), CT (universal)
+# equipment (universal), RTO (universal), aircrew-weapons (universal), CT (universal), Crewman (universal)
 - type: entity
   parent: ColMarTechBase
   id: AU14USCMclothingequipmentvendor
@@ -255,7 +255,7 @@
       - id: RMCPouchMedical
       - id: RMCPouchSyringeFill
       - id: RMCPouchFirstAidSplintsGauzeOintment
-        name: first-aid pouch (gauze, ointment) # TODO RMC14 splints
+        name: first-aid pouch (gauze, ointment)
       - id: RMCPouchFirstAidPills
         name: first-aid pouch (pills)
     - name: Medical Storage
@@ -614,6 +614,10 @@
       - id: RMCPackFlareCAS
     - name: Spare Equipment
       entries:
+      - id: ANPRC117GRadioFilled
+        amount: 2
+      - id: ANPRCMastAntenna
+        amount: 1
       - id: RMCExplosiveBreachingCharge
         amount: 4
       - id: RMCBinoculars
@@ -861,7 +865,7 @@
       - id: CMEntrenchingTool
         recommended: true
         amount: 30
-      - id: RMCShovel
+      - id: AU14ToolShovel
         amount: 10
       - id: RMCM5Bayonet
         recommended: true
@@ -987,6 +991,8 @@
       - id: AU14SpikeBoots
     - name: Spare Equipment
       entries:
+      - id: ANPRCMastAntenna
+        amount: 1
       - id: RMCExplosiveBreachingCharge
         amount: 2
       - id: RMCBinoculars
@@ -1039,14 +1045,16 @@
   name: combat technicians gear rack
   description: An automated gear rack for combat technicians.
   components:
-  - type: AccessReader
-    access: [ [ "AU14AccessGovforEngineering" ], [ "AU14AccessOpforEngineering" ] ]
+  # - type: AccessReader
+  #   access: [ [ "AU14AccessGovforEngineering" ], [ "AU14AccessOpforEngineering" ] ]
   - type: Sprite
     sprite: _RMC14/Structures/Machines/VendingMachines/ColMarTech/combat_technician_gear.rsi
   - type: CMAutomatedVendor
     jobs:
     - AU14JobGOVFORSquadCombatTech
     - AU14JobOPFORSquadCombatTech
+    - AU14JobGOVFOROfficerEngi
+    - AU14JobOPFOROfficerEngi
     sections:
     - name: Engineer Set
       takeAll: CMEngineerSet
@@ -1255,7 +1263,7 @@
     - RMCVisorWelding
     - RMCWeldingGoggles
     - RMCSentryLaptop
-    - RMCShovel
+    - AU14ToolShovel
 
 - type: entity
   parent: CMVendorBundleRiflemanApparel
@@ -1274,7 +1282,7 @@
     - CMAPCElectronics
     - RMCWeldingGoggles
     - AU14MaintenanceJack
-    - RMCShovel
+    - AU14ToolShovel
 
 - type: entity
   parent: CMVendorBundleRiflemanApparel
@@ -1646,3 +1654,95 @@
       entries:
       - id: AU14FlagCarriableUA
         amount: 1
+
+- type: entity
+  parent: ColMarTechBase
+  id: AU14USCMVehicleCrewmanVendor
+  name: vehicle crewman vendor
+  description: >-
+    An automated dispenser rack, hooked up to a small storage of support gear for vehicle crew.
+    Engineered to get vehicle crewmen fight-ready in seconds after cryogenic hypersleep or scramble orders.
+    The console shows many different options available, though they are all marked as temporarily out of stock.
+
+    Vehicle crew protocol: grab the essential maintenance jack.
+  components:
+  - type: AccessReader
+    access: [[ "AU14AccessGovforVehicleCrew" ], [ "AU14AccessOpforVehicleCrew" ]]
+  - type: Sprite
+    sprite: _RMC14/Structures/Machines/VendingMachines/ColMarTech/clothing.rsi
+  - type: CMAutomatedVendor
+    sections:
+    - name: Servicing Tools # placeholder
+      entries:
+      - id: AU14MaintenanceJack
+
+- type: entity
+  parent: ColMarTechBase
+  id: AU14USCMShipsideUniformVendor
+  name: USCM shipside uniform vendor
+  description: A stripped-down dispenser rack stocked with off-duty uniforms, footwear, and light personal gear for wear aboard ship.
+  components:
+  - type: AccessReader
+    access: [ [ "AU14AccessGovforSquad" ], [ "AU14AccessOpforSquad" ] ]
+  - type: Sprite
+    sprite: _AU14/Structures/Vendors/uscmgearrack.rsi
+  - type: CMAutomatedVendor
+    sections:
+    - name: Softcovers
+      entries:
+      - id: AU14CamoBoonieHat
+        amount: 40
+      - id: AU14CamoPatrolCap
+        amount: 50
+      - id: AU14CamoFlapCap
+        amount: 30
+      - id: AU14HeadCommandoBeanie
+        amount: 10
+    - name: Fatigues
+      entries:
+      - id: AU14CamoUSCMFatigues
+        amount: 120
+    - name: Footwear
+      entries:
+      - id: CMBootsBlack
+        amount: 40
+      - id: CMBootsBrown
+        amount: 40
+      - id: AU14BootsJungle
+        amount: 25
+    - name: Mask
+      entries:
+      - id: CMMaskCoif
+        amount: 20
+      - id: RMCMaskScarfBlack
+        amount: 20
+      - id: RMCMaskScarfGray
+        amount: 20
+      - id: RMCMaskScarfTan
+        amount: 20
+      - id: RMCMaskTornScarfGreen
+        amount: 20
+      - id: RMCMaskTornScarfDesert
+        amount: 20
+      - id: RMCMaskTornScarfSnow
+        amount: 20
+      - id: RMCMaskTornScarfBlack
+        amount: 20
+      - id: RMCMaskSmockBlack
+        amount: 20
+      - id: RMCMaskNeckerchiefGray
+        amount: 20
+    - name: Glasses
+      entries:
+      - id: RMCGlassesMarineRpg
+        amount: 25
+      - id: AU14GlassesBiMex
+        amount: 25
+      - id: AU14GlassesBiMexOrange
+        amount: 25
+      - id: RMCGlassesTriMaxBronze
+        amount: 25
+    - name: Bag
+      entries:
+      - id: CMSatchelMarine
+        amount: 40
