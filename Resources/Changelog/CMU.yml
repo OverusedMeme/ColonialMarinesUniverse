@@ -9588,5 +9588,66 @@
   id: 626
   time: '2026-08-15T10:11:41.0000000+00:00'
   url: https://github.com/AU-14/ColonialMarinesUniverse/pull/1832
+- author: CatoChristopherMrow
+  changes:
+  - message: Added most experimental tools to the col synth loadout, along with a
+      proper point amount and cost
+    type: Add
+  - message: Removed govfor synths free extra synth equipment via loadout piece (sorrrrry)
+    type: Remove
+  - message: Expanded a few webbings and pouch options for synths
+    type: Tweak
+  id: 627
+  time: '2026-08-15T21:51:31.0000000+00:00'
+  url: https://github.com/AU-14/ColonialMarinesUniverse/pull/1833
+- author: Vencallium
+  changes:
+  - message: Hotfixed Stable Garrison and the USS George W. Bush, including communications,
+      medical, research, disposal, access, and equipment layout fixes.
+    type: Map
+  - message: Added a deployable Weyland-Yutani UA-635C sentry system with locked corporate
+      IFF recognition.
+    type: Add
+  id: 628
+  time: '2026-08-16T01:52:20.0000000+00:00'
+  url: https://github.com/AU-14/ColonialMarinesUniverse/pull/1835
+- author: Vencallium
+  changes:
+  - message: AEGIS OB spawner to requisitions
+    type: Add
+  - message: Alpha, Bravo & Charlie supply drops to requisitions
+    type: Add
+  id: 629
+  time: '2026-08-16T08:09:11.0000000+00:00'
+  url: https://github.com/AU-14/ColonialMarinesUniverse/pull/1836
+- author: TheMaiji
+  changes:
+  - message: Prevent powerloaders and chairs from flying across z-levels.
+    type: Fix
+  - message: Prevent falling vehicles from damaging their buckled occupants.
+    type: Fix
+  id: 630
+  time: '2026-08-16T13:46:30.0000000+00:00'
+  url: https://github.com/AU-14/ColonialMarinesUniverse/pull/1837
+- author: CatoChristopherMrow
+  changes:
+  - message: Fixed govfor pointbuy amount
+    type: Fix
+  id: 631
+  time: '2026-08-16T16:55:24.0000000+00:00'
+  url: https://github.com/AU-14/ColonialMarinesUniverse/pull/1838
+- author: troytroy400
+  changes:
+  - message: Added destroyable multiz roof tiles for mapping.
+    type: Add
+  - message: Added a round-start free crate system for ASRS gated by gamemode and
+      faction. Currently at round start on FoF and DS, GOVFOR/OPFOR will get a free
+      mortar kit and a FOB Tent Crate.
+    type: Add
+  - message: Filled HESCO barricades can now be barbwired when they are below wall-size.
+    type: Tweak
+  id: 632
+  time: '2026-08-16T17:35:48.0000000+00:00'
+  url: https://github.com/AU-14/ColonialMarinesUniverse/pull/1839
 Name: CMU
 Order: -1
