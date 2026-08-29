@@ -1,5 +1,5 @@
 using System.Linq;
-using Content.Shared._CMU14.Round.Objectives.Component;
+using Content.Shared._CMU14.Round.Objectives.Components;
 using Content.Shared._CMU14.Round.Objectives.Type;
 using Content.Shared._CMU14.Threats;
 using Robust.Shared.Map;
@@ -73,6 +73,9 @@ public sealed partial class ObjectiveControlSystem
         foreach (var (objUid, objective) in allObjectives)
         {
             if (objective.FactionNeutral)
+                continue;
+
+            if (objective.Active)
                 continue;
 
             if (objective is { ObjectiveLevel: 3, RollAnyway: false })

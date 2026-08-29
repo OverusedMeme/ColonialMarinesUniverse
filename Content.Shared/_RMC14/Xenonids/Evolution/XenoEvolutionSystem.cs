@@ -7,6 +7,7 @@ using Content.Shared._RMC14.Xenonids.Announce;
 using Content.Shared._RMC14.Xenonids.Egg;
 using Content.Shared._RMC14.Xenonids.Hive;
 using Content.Shared._RMC14.Xenonids.JoinXeno;
+using Content.Shared._RMC14.Xenonids.ManageHive.Boons;
 using Content.Shared._RMC14.Xenonids.Weeds;
 using Content.Shared.Actions;
 using Content.Shared.Administration.Logs;
@@ -65,9 +66,7 @@ public sealed partial class XenoEvolutionSystem : EntitySystem
     [Dependency] private SharedXenoHiveSystem _xenoHive = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private SharedContainerSystem _container = default!;
-    [Dependency] private SharedXenoWeedsSystem _xenoWeeds = default!;
-    [Dependency] private IMapManager _map = default!;
-    [Dependency] private ISharedPlaytimeManager _playtime = default!;
+    [Dependency] private SharedXenoWeedsSystem _xenoWeeds = default!;    [Dependency] private ISharedPlaytimeManager _playtime = default!;
 
     private TimeSpan _evolutionPointsRequireOvipositorAfter;
     private TimeSpan _evolutionAccumulatePointsBefore;
@@ -102,6 +101,8 @@ public sealed partial class XenoEvolutionSystem : EntitySystem
         SubscribeLocalEvent<XenoEvolutionGranterComponent, NewXenoEvolvedEvent>(OnGranterEvolved);
 
         SubscribeLocalEvent<XenoOvipositorChangedEvent>(OnOvipositorChanged);
+
+        SubscribeLocalEvent<HiveBoonActivateAdaptabilityEvent>(OnBoonAdaptability);
 
         Subs.BuiEvents<XenoEvolutionComponent>(XenoEvolutionUIKey.Key,
             subs =>
@@ -359,6 +360,49 @@ public sealed partial class XenoEvolutionSystem : EntitySystem
         _xenoAnnounce.AnnounceSameHive(ent.Owner, Loc.GetString(ent.Comp.AnnounceMessage));
     }
 
+    private void OnBoonAdaptability(HiveBoonActivateAdaptabilityEvent ev)
+    {
+        var castes = new List<(EntProtoId Id, int Tier)>();
+        foreach (var prototype in _prototypes.EnumeratePrototypes<EntityPrototype>())
+        {
+            if (!prototype.TryGetComponent(out XenoEvolutionComponent? evolution, _compFactory))
+                continue;
+
+            foreach (var id in evolution.EvolvesTo)
+            {
+                if (_prototypes.TryIndex(id, out var caste) &&
+                    caste.TryGetComponent(out XenoComponent? xeno, _compFactory))
+                {
+                    castes.Add((id, xeno.Tier));
+                }
+            }
+        }
+
+        var xenos = EntityQueryEnumerator<XenoComponent, XenoEvolutionComponent>();
+        while (xenos.MoveNext(out var uid, out var xenoComp, out var comp))
+        {
+            if (_mobState.IsDead(uid) || !_xenoHive.FromSameHive(uid, ev.Boon))
+                continue;
+
+            var self = Prototype(uid)?.ID;
+            foreach (var (id, tier) in castes)
+            {
+                if (tier != xenoComp.Tier ||
+                    id.Id == self ||
+                    comp.EvolvesToWithoutPoints.Contains(id))
+                {
+                    continue;
+                }
+
+                comp.EvolvesToWithoutPoints.Add(id);
+            }
+
+            Dirty(uid, comp);
+        }
+
+        _xenoAnnounce.AnnounceSameHiveDefaultSound(ev.Boon, "The Queen has loosened our forms. We may take the shape of another of our rank!");
+    }
+
     private void OnOvipositorChanged(ref XenoOvipositorChangedEvent ev)
     {
         if (_net.IsClient)
@@ -521,7 +565,7 @@ public sealed partial class XenoEvolutionSystem : EntitySystem
 
         if (TryComp<RestrictEvolveOffWeedsComponent>(xeno.Owner, out var comp))
         {
-            var coordinates = _transform.GetMoverCoordinates(xeno).SnapToGrid(EntityManager, _map);
+            var coordinates = _transform.GetMoverCoordinates(xeno).SnapToGrid(EntityManager);
             if (_transform.GetGrid(coordinates) is not { } gridUid ||
                 !TryComp(gridUid, out MapGridComponent? grid))
             {

@@ -129,7 +129,6 @@ public sealed partial class CMDistressSignalRuleSystem : GameRuleSystem<CMDistre
     [Dependency] private ItemCamouflageSystem _camo = default!;
     [Dependency] private LarvaQueueSystem _larvaQueue = default!;
     [Dependency] private MapLoaderSystem _mapLoader = default!;
-    [Dependency] private IMapManager _mapManager = default!;
     [Dependency] private MapSystem _mapSystem = default!;
     [Dependency] private MarineAnnounceSystem _marineAnnounce = default!;
     [Dependency] private MindSystem _mind = default!;
@@ -2089,17 +2088,8 @@ public sealed partial class CMDistressSignalRuleSystem : GameRuleSystem<CMDistre
         if (mapUid is not { } map)
             return;
 
-        AddMapId(shipMaps, map);
-
-        if (!_zLevels.TryGetZNetwork(map, out var network) ||
-            !_zLevels.TryGetDepthBounds(network.Value, out var minDepth, out var maxDepth))
-            return;
-
-        for (var depth = minDepth; depth <= maxDepth; depth++)
-        {
-            if (_zLevels.TryGetMapAtDepth(network.Value, depth, out var connectedMap))
-                AddMapId(shipMaps, connectedMap);
-        }
+        foreach (var connectedMap in _zLevels.GetAllNetworkMaps(map)) // CMU14
+            AddMapId(shipMaps, connectedMap);
     }
 
     private void AddMapId(ICollection<MapId> shipMaps, EntityUid map)

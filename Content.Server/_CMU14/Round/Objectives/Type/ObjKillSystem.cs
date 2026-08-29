@@ -2,8 +2,8 @@ using System.Linq;
 using Content.Server.GameTicking;
 using Content.Server.Roles.Jobs;
 using Content.Shared._CMU14.Round.Objectives.Type;
-using Content.Shared._CMU14.Round.Objectives.Component;
-using Content.Server._CMU14.Round.Objectives.Component;
+using Content.Shared._CMU14.Round.Objectives.Components;
+using Content.Server._CMU14.Round.Objectives.Components;
 using Content.Shared._RMC14.Synth;
 using Content.Shared.Mobs;
 using Content.Shared.NPC.Components;
@@ -37,10 +37,10 @@ public sealed partial class ObjKillSystem : ObjectiveSystem
 
     private void OnActivated(EntityUid uid, KillObjectiveComponent killComp, ref ObjectiveActivatedEvent _)
     {
-        if (!TryComp(uid, out CMUObjectiveComponent? comp) || !comp.Active || killComp.HasSpawned)
+        if (!TryComp(uid, out CMUObjectiveComponent? comp) || !comp.Active)
             return;
 
-        if (killComp.SpawnMob && !string.IsNullOrEmpty(killComp.TargetPrototype))
+        if (!killComp.HasSpawned && killComp.SpawnMob && !string.IsNullOrEmpty(killComp.TargetPrototype))
             ActivateKillObjective(uid, killComp);
 
         var objMap = Transform(uid).MapID;
@@ -129,7 +129,7 @@ public sealed partial class ObjKillSystem : ObjectiveSystem
 
     private void MarkExistingEntities(EntityUid uid, KillObjectiveComponent comp, CMUObjectiveComponent auComp, MapId objMap)
     {
-        var searchMaps = GetZNetworkMapIds(objMap);
+        var searchMaps = _zLevels.GetAllNetworkMapIds(objMap);
         var query = AllEntityQuery<MetaDataComponent, TransformComponent, NpcFactionMemberComponent>();
         while (query.MoveNext(out var ent, out var meta, out var xform, out var factionComp))
         {

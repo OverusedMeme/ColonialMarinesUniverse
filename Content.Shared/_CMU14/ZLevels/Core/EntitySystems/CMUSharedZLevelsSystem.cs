@@ -32,7 +32,6 @@ public abstract partial class CMUSharedZLevelsSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private ActionBlockerSystem _blocker = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
-    [Dependency] private IMapManager _mapManager = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private IPrototypeManager _proto = default!;
@@ -92,6 +91,50 @@ public abstract partial class CMUSharedZLevelsSystem : EntitySystem
     [PublicAPI]
     public bool IsMapInNetwork(Entity<CMUZLevelsNetworkComponent> network, EntityUid mapUid)
         => network.Comp.ZLevelByEntity.ContainsKey(mapUid);
+
+    [PublicAPI]
+    public bool IsSameZNetwork(MapId mapId, MapId primaryMapId)
+        => mapId == primaryMapId
+            || (_map.TryGetMap(mapId, out var mapUid)
+            && _map.TryGetMap(primaryMapId, out var primaryMapUid)
+            && IsSameZNetwork(mapUid.Value, primaryMapUid.Value));
+
+    [PublicAPI]
+    public bool IsSameZNetwork(EntityUid? mapUid, EntityUid primaryMapUid)
+        => mapUid is { } map
+            && (map == primaryMapUid
+            || (TryGetZNetwork(primaryMapUid, out var network)
+            && IsMapInNetwork(network.Value, map)));
+
+    [PublicAPI]
+    public List<EntityUid> GetAllNetworkMaps(EntityUid mapUid)
+    {
+        var maps = new List<EntityUid> { mapUid };
+
+        if (TryGetZNetwork(mapUid, out var network)
+            && TryGetDepthBounds(network.Value, out var minDepth, out var maxDepth))
+        {
+            for (var depth = minDepth; depth <= maxDepth; depth++)
+            {
+                if (TryGetMapAtDepth(network.Value, depth, out var map)
+                    && map != mapUid)
+                    maps.Add(map);
+            }
+        }
+
+        return maps;
+    }
+
+    [PublicAPI]
+    public HashSet<MapId> GetAllNetworkMapIds(MapId mapId)
+    {
+        var ids = new HashSet<MapId> { mapId };
+
+        foreach (var map in GetAllNetworkMaps(_map.GetMap(mapId)))
+            ids.Add(_transform.GetMapId(map));
+
+        return ids;
+    }
 
     [PublicAPI]
     public bool TryMapOffset(Entity<CMUZLevelMapComponent?> inputMapUid,

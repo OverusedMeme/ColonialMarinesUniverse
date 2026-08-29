@@ -54,13 +54,10 @@ public sealed partial class CMUPathogenWalkerSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _protoMgr = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly SharedJitteringSystem _jitter = default!;
-    [Dependency] private readonly SharedCMUWoundsSystem _wounds = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
     [Dependency] private readonly SharedStatusEffectsSystem _status = default!;
     [Dependency] private readonly LanguageSystem _language = default!;
     [Dependency] private readonly ISharedPlayerManager _player = default!;
     [Dependency] private readonly MindSystem _mind = default!;
-    [Dependency] private readonly MetaDataSystem _metaData = default!;
     [Dependency] private readonly BlindableSystem _blindable = default!;
 
     private static readonly ProtoId<NpcFactionPrototype> WalkerFaction = "CMU14PathogenWalker";
@@ -81,7 +78,7 @@ public sealed partial class CMUPathogenWalkerSystem : EntitySystem
         SubscribeLocalEvent<CMUPathogenWalkerComponent, ExaminedEvent>(OnWalkerExamined);
         SubscribeNetworkEvent<CMUPathogenWalkerAcceptNetEvent>(OnAcceptNet);
         SubscribeNetworkEvent<CMUPathogenWalkerDeclineNetEvent>(OnDeclineNet);
-        SubscribeLocalEvent<CMUPathogenWalkerComponent, BodyPartSeveredEvent>(OnWalkerSevered);
+        SubscribeLocalEvent<BodyPartComponent, BodyPartSeveredEvent>(OnWalkerSevered);
     }
 
     private void OnReanimate(CMUMycotoxinInjectDoReanimateEvent ev)
@@ -155,17 +152,25 @@ public sealed partial class CMUPathogenWalkerSystem : EntitySystem
         Dirty(target, walker);
     }
 
-    private void OnWalkerSevered(Entity<CMUPathogenWalkerComponent> walker, ref BodyPartSeveredEvent args)
+    private void OnWalkerSevered(Entity<BodyPartComponent> part, ref BodyPartSeveredEvent args)
     {
         if (args.Type != BodyPartType.Head)
             return;
 
-        // Cancel any pending revive and mark as exhausted
-        walker.Comp.ReviveAt = null;
-        walker.Comp.RevivesUsed = walker.Comp.MaxRevives;
-        Dirty(walker);
+        if (!TryComp<CMUPathogenWalkerComponent>(args.Body, out var walker))
+            return;
 
-        _popup.PopupEntity(Loc.GetString("cmu14-walker-permanent-death"), walker, PopupType.Medium);
+        // Decap is permanent death
+        walker.ReviveAt = null;
+        walker.RevivesUsed = walker.MaxRevives;
+        walker.OfferResolved = true;
+        walker.OfferExpiresAt = null;
+        Dirty(args.Body, walker);
+
+        RemComp<GhostTakeoverAvailableComponent>(args.Body);
+        RemComp<GhostRoleComponent>(args.Body);
+
+        _popup.PopupEntity(Loc.GetString("cmu14-walker-permanent-death"), args.Body, PopupType.Medium);
     }
 
     private void OnAcceptNet(CMUPathogenWalkerAcceptNetEvent ev, EntitySessionEventArgs args)

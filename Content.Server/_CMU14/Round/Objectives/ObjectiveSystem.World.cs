@@ -1,4 +1,4 @@
-using Content.Shared._CMU14.Round.Objectives.Component;
+using Content.Shared._CMU14.Round.Objectives.Components;
 using Robust.Shared.Map;
 
 namespace Content.Server._CMU14.Round.Objectives;
@@ -9,12 +9,12 @@ public abstract partial class ObjectiveSystem
     {
         var specific = new List<EntityUid>();
         var generic = new List<EntityUid>();
-        var searchMaps = GetZNetworkMapIds(map);
+        var searchMaps = _zLevels.GetAllNetworkMapIds(map);
 
         var query = AllEntityQuery<CMUObjectiveMarkerComponent, TransformComponent>();
         while (query.MoveNext(out var markerUid, out var markerComp, out var markerXform))
         {
-            if (markerComp.Used || !searchMaps.Contains(markerXform.MapID))
+            if (markerComp.Used || HasComp<CMUObjectiveComponent>(markerUid) || !searchMaps.Contains(markerXform.MapID))
                 continue;
 
             if (!string.IsNullOrEmpty(markerId) && markerComp.FetchId == markerId)

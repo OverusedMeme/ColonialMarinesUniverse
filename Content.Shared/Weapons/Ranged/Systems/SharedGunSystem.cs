@@ -10,6 +10,7 @@ using Content.Shared._RMC14.Weapons.Ranged;
 using Content.Shared._RMC14.Weapons.Ranged.Flamer;
 using Content.Shared._RMC14.Weapons.Ranged.Prediction;
 using Content.Shared._RMC14.Vehicle;
+using Content.Shared._CMU14.Weapons.Ranged; // CMU14
 using Content.Shared._CMU14.ZLevels.Core.EntitySystems;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Actions;
@@ -62,7 +63,6 @@ public abstract partial class SharedGunSystem : EntitySystem
 {
     [Dependency] private   ActionBlockerSystem _actionBlockerSystem = default!;
     [Dependency] protected IGameTiming Timing = default!;
-    [Dependency] protected IMapManager MapManager = default!;
     [Dependency] protected SharedMapSystem MapSystem = default!;
     [Dependency] private   INetManager _netManager = default!;
     [Dependency] protected IPrototypeManager ProtoManager = default!;
@@ -1097,6 +1097,9 @@ public abstract partial class SharedGunSystem : EntitySystem
         {
             Audio.PlayPvs(cartridge.EjectSound, entity, AudioParams.Default.WithVariation(SharedContentAudioSystem.DefaultVariation).WithVolume(-1f));
         }
+
+        if (TryComp<CartridgeAmmoComponent>(entity, out var spent) && spent.Spent) // CMU14
+            EnsureComp<CMUSpentCasingComponent>(entity).EjectedAt = Timing.CurTime;
     }
 
     public IShootable EnsureShootable(EntityUid uid) // RMC14
