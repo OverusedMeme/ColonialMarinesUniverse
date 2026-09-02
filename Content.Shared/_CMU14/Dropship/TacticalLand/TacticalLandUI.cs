@@ -14,7 +14,6 @@ public sealed class DropshipNavigationTacticalLandBuiState(
     bool tacticalHover,
     bool canMoveUp,
     bool canMoveDown,
-    int rotationDegrees,
     Dictionary<DoorLocation, bool> doorLockStatus,
     bool remoteControlStatus) : BoundUserInterfaceState
 {
@@ -23,7 +22,6 @@ public sealed class DropshipNavigationTacticalLandBuiState(
     public readonly bool TacticalHover = tacticalHover;
     public readonly bool CanMoveUp = canMoveUp;
     public readonly bool CanMoveDown = canMoveDown;
-    public readonly int RotationDegrees = rotationDegrees;
     public readonly Dictionary<DoorLocation, bool> DoorLockStatus = doorLockStatus;
     public readonly bool RemoteControlStatus = remoteControlStatus;
 }
@@ -44,7 +42,4 @@ public sealed class DropshipNavigationTacticalLandMoveUpMsg : BoundUserInterface
 public sealed class DropshipNavigationTacticalLandMoveDownMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
-public sealed class DropshipNavigationTacticalLandRotateMsg(bool clockwise) : BoundUserInterfaceMessage
-{
-    public readonly bool Clockwise = clockwise;
-}
+public sealed class DropshipNavigationTacticalHoverCancelMsg : BoundUserInterfaceMessage;

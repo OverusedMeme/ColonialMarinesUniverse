@@ -15,12 +15,6 @@
     - type: IntrinsicRadioReceiver
     - type: IntrinsicRadioTransmitter
     - type: ActiveRadio
-    - type: CMUDroneAndroid
-    - type: PyroWhitelist
-    - type: ScoutWhitelist
-    - type: DemoSpecWhitelist
-    - type: SharpSpecWhitelist
-    - type: SniperWhitelist
   - type: Inventory
     templateId: cmuDroneAndroid
   - type: HumanoidAppearance
@@ -35,8 +29,8 @@
     canUseGuns: true
     removeComponents: CMUDroneAndroidRemoveComponents
     generation: cmu-species-drone-android-generation
-    critThreshold: 175
-    deadThreshold: 180
+    critThreshold: 74
+    deadThreshold: 80
     repairTime: 5
     selfRepairTime: 9999
     hideGeneration: true
@@ -45,7 +39,7 @@
   - type: MeleeWeapon
     damage:
       types:
-        Blunt: 25
+        Blunt: 10
   - type: RMCInnateSlowdown
     slowdown: 1.15
   - type: NoClothingSlowdown
@@ -62,14 +56,14 @@
     enabled: false
   - type: TacticalMapIcon
     icon:
-      sprite: /Textures/_CMU14/Interface/cmugovforblips.rsi
+      sprite: /Textures/_AU14/Interface/au14govforjobicons.rsi
       state: rifleman
   - type: UserIFF
     factions:
-    - GOVFOR # TODO
+    - GOVFOR
   - type: NpcFactionMember
     factions:
-    - GOVFOR # TODO
+    - GOVFOR
   - type: GrantMarineIcons
     factions:
     - UNMC

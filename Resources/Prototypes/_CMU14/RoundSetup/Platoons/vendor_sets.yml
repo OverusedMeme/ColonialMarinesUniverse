@@ -65,7 +65,7 @@
     ReqVend: AU14UPPRequisitionVendor
 
 - type: platoonVendorSet
-  id: WYPMC
+  id: WEYU
   parent: AU14BasePlatoonVendorSet
   vendors:
     Clothing: AU14WYclothingequipmentvendor

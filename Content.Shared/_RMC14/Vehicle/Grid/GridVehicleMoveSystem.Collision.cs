@@ -1,11 +1,8 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using Content.Shared.Access.Components;
 using Content.Shared._CMU14.ZLevels.Core.Components;
 using Content.Shared._CMU14.ZLevels.Vehicles;
-using Content.Shared._CMU14.Destruction;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Damage;
 using Content.Shared.Doors.Components;
@@ -38,15 +35,6 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
         Blocked = 1,
     }
 
-    private enum HeavySmashResult : byte
-    {
-        NotSmashable,
-        Destroyed,
-        Blocked,
-        PoweredDemolishing,
-        PoweredIndestructible,
-    }
-
     private readonly record struct CollisionCandidate(
         EntityUid Entity,
         Box2 Aabb,
@@ -69,9 +57,7 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
         bool applyEffects,
         bool debug = true,
         HashSet<EntityUid>? blockers = null,
-        HashSet<EntityUid>? ignoredEntities = null,
-        HashSet<EntityUid>? escapeBlockers = null,
-        Vector2? escapeDirection = null)
+        HashSet<EntityUid>? ignoredEntities = null)
     {
         if (!physicsQ.TryComp(uid, out var body) || !fixtureQ.TryComp(uid, out var fixtures))
             return true;
@@ -101,61 +87,15 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
 
         var wheelDamage = _net.IsClient ? 0f : GetWheelCollisionDamage(uid, mover);
 
-        if (!TryGetFixtureAabb(fixtures, tx, out var aabb) ||
-            !TryGetFixtureLocalAabb(fixtures, out var localAabb))
+        if (!TryGetFixtureAabb(fixtures, tx, out var aabb))
             return true;
 
         var movementAabb = GetMovementAabb(aabb, mover);
-        var fixtureBounds = new Box2Rotated(localAabb.Translated(tx.Position), rotation, tx.Position);
-        _intersectingPhysics.Clear();
-        lookup.GetEntitiesIntersecting(
-            world.MapId,
-            fixtureBounds,
-            _intersectingPhysics,
-            LookupFlags.Dynamic | LookupFlags.Static);
+        _intersecting.Clear();
+        lookup.GetEntitiesIntersecting(world.MapId, aabb, _intersecting, LookupFlags.Dynamic | LookupFlags.Static);
         var hits = _hitsBuffers[_hitsDepth++];
         hits.Clear();
-        foreach (var hit in _intersectingPhysics)
-        {
-            hits.Add(hit.Owner);
-        }
-        var movementStart = transform.GetWorldPosition(uid);
-        var movementHalfExtents = aabb.Size * 0.5f;
-        hits.Sort((left, right) =>
-        {
-            var leftBounds = lookup.GetWorldAABB(left);
-            var rightBounds = lookup.GetWorldAABB(right);
-            var leftTime = ImpactEnergySolver.GetSweptAabbContactTime(
-                movementStart,
-                tx.Position,
-                movementHalfExtents,
-                leftBounds);
-            var rightTime = ImpactEnergySolver.GetSweptAabbContactTime(
-                movementStart,
-                tx.Position,
-                movementHalfExtents,
-                rightBounds);
-            var order = leftTime.CompareTo(rightTime);
-            if (order != 0)
-                return order;
-
-            var leftOrder = ImpactEnergySolver.GetContactOrder(movementStart, tx.Position, leftBounds.Center);
-            var rightOrder = ImpactEnergySolver.GetContactOrder(movementStart, tx.Position, rightBounds.Center);
-            order = leftOrder.CompareTo(rightOrder);
-            if (order != 0)
-                return order;
-            order = leftBounds.Left.CompareTo(rightBounds.Left);
-            if (order != 0)
-                return order;
-            order = leftBounds.Bottom.CompareTo(rightBounds.Bottom);
-            if (order != 0)
-                return order;
-            order = leftBounds.Right.CompareTo(rightBounds.Right);
-            if (order != 0)
-                return order;
-            order = leftBounds.Top.CompareTo(rightBounds.Top);
-            return order != 0 ? order : left.Id.CompareTo(right.Id);
-        });
+        hits.AddRange(_intersecting);
         var playedCollisionSound = false;
         var mobHits = new ValueList<EntityUid>(0);
 
@@ -171,10 +111,7 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
 
         foreach (var other in hits)
         {
-            // The containing grid supplies the vehicle's local coordinate space;
-            // its child walls and structures are blockers, but the grid entity
-            // itself must never be treated as one.
-            if (other == uid || other == grid)
+            if (other == uid)
                 continue;
 
             if (TryComp(other, out VehicleRideSurfaceRiderComponent? rider) && rider.Vehicle == uid)
@@ -203,20 +140,6 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
                     operatorUid,
                     isSmashingNow,
                     out var candidate))
-            {
-                continue;
-            }
-
-            // A prediction correction or a high-speed impact can occasionally
-            // leave the chassis already overlapping a blocker. Permit only a
-            // step that moves away from blockers present at the starting pose;
-            // this cannot be used to continue driving through the obstruction.
-            if (escapeDirection is { } escapeDelta &&
-                escapeBlockers?.Contains(candidate.Entity) == true &&
-                GridVehicleMotionSimulator.IsMovingAwayFromObstacle(
-                    escapeDelta,
-                    aabb.Center,
-                    candidate.Aabb.Center))
             {
                 continue;
             }
@@ -257,17 +180,15 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
                 continue;
             }
 
-            var bumpOpeningDoor = candidate.Door is { BumpOpen: true } &&
-                                  operatorUid != null &&
-                                  HasNoAccessRequirements(candidate.Entity) &&
-                                  !candidate.IsUnpoweredDoor &&
-                                  !isSmashingNow;
-
-            if (applyEffects && bumpOpeningDoor && candidate.Door is { } door && !_net.IsClient)
+            if (applyEffects && candidate.Door is { } door && !_net.IsClient && !isSmashingNow &&
+                (candidate.CollisionClass == VehicleCollisionClass.Breakable ||
+                 candidate.CollisionClass == VehicleCollisionClass.Ignore))
             {
-                if (_door.TryOpen(candidate.Entity, door, operatorUid) && candidate.IsBarricade)
+                if (!candidate.IsUnpoweredDoor)
                 {
-                    _door.OnPartialOpen(candidate.Entity, door);
+                    _door.TryOpen(candidate.Entity, door, operatorUid);
+                    if (candidate.IsBarricade)
+                        _door.OnPartialOpen(candidate.Entity, door);
                 }
             }
 
@@ -276,11 +197,6 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
 
             if (candidate.CollisionClass == VehicleCollisionClass.Breakable)
             {
-                var plowImpact = GridVehicleMotionSimulator.IsFrontImpact(
-                    tx.Position,
-                    rotation,
-                    localAabb,
-                    candidate.Aabb);
                 var result = HandleBreakableCollision(
                     uid,
                     mover,
@@ -291,7 +207,6 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
                     world.MapId,
                     candidate.Door != null,
                     candidate.IsUnpoweredDoor,
-                    plowImpact,
                     applyEffects,
                     debugEnabled,
                     blockers,
@@ -310,30 +225,6 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
 
             if (candidate.CollisionClass == VehicleCollisionClass.Hard)
             {
-                // A normal bump-open door should stop the vehicle harmlessly while
-                // it opens, just like it stops a walking mob. The server-side
-                // TryOpen above still enforces power, bolts, welds and driver access.
-                if (bumpOpeningDoor)
-                {
-                    AddBlockingCollision(
-                        uid,
-                        candidate.Entity,
-                        candidate.CollisionAabb,
-                        candidate.Aabb,
-                        clearance,
-                        world.MapId,
-                        debugEnabled,
-                        blockers);
-                    _hitsDepth--;
-                    AddProbe(true);
-                    return false;
-                }
-
-                var plowImpact = GridVehicleMotionSimulator.IsFrontImpact(
-                    tx.Position,
-                    rotation,
-                    localAabb,
-                    candidate.Aabb);
                 var result = HandleHardCollision(
                     uid,
                     mover,
@@ -345,7 +236,6 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
                     clearance,
                     world.MapId,
                     candidate.IsVehicle,
-                    plowImpact,
                     applyEffects,
                     debugEnabled,
                     blockers,
@@ -392,18 +282,6 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
         AddProbe(false);
         _hitsDepth--;
         return true;
-    }
-
-    private bool HasNoAccessRequirements(EntityUid door)
-    {
-        if (!TryComp(door, out AccessReaderComponent? access))
-            return true;
-
-        return !access.Enabled ||
-               access.ContainerAccessProvider == null &&
-               access.AccessLists.Count == 0 &&
-               access.AccessKeys.Count == 0 &&
-               access.DenyTags.Count == 0;
     }
 
     private bool ShouldIgnoreZHighGroundCollision(EntityUid vehicle, EntityUid other)
@@ -554,7 +432,6 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
         MapId mapId,
         bool hasDoor,
         bool isUnpoweredDoor,
-        bool plowImpact,
         bool applyEffects,
         bool debug,
         HashSet<EntityUid>? blockers,
@@ -598,11 +475,15 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
 
         if (applyEffects)
         {
+            // Capture before TrySmash — ApplySmashSlowdown inside it scales CurrentSpeed down,
+            // which can drop it below WallSmashMinSpeed and make IsSmashingCapable return false.
+            var preCollisionSpeed = MathF.Abs(mover.CurrentSpeed);
+            var wasSmashingCapable = IsSmashingCapable(mover);
             var selfDamageScale = smashable?.SelfDamageMultiplier ?? 1f;
-            // Apply this before spending momentum; otherwise a successful smash
-            // can lower CurrentSpeed below WallSmashMinSpeed and skip self-damage.
-            ApplyHeavySmashSelfDamage(vehicle, mover, other, selfDamageScale);
-            TrySmash(other, vehicle, plowImpact, ref playedCollisionSound);
+            TrySmash(other, vehicle, ref playedCollisionSound);
+            ApplyHeavySmashSelfDamage(vehicle, mover, selfDamageScale);
+            if (wasSmashingCapable && ShouldApplyCrashImmobility(mover, preCollisionSpeed))
+                ApplyCrashImmobility(vehicle, mover);
         }
 
         return CollisionHandlingResult.Continue;
@@ -666,16 +547,16 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
         _nextImmobilePopupAt[vehicle] = now + ImmobilePopupCooldown;
     }
 
-    /// <summary>Hull integrity damage for ramming a mob. Plow-reduced and independently rate-limited.</summary>
+    /// <summary>Hull integrity damage for ramming a mob. Plow-reduced. Shares the wall-smash cooldown to avoid double-dipping.</summary>
     private void ApplyMobCollisionHullDamage(EntityUid vehicle, GridVehicleMoverComponent mover)
     {
         if (mover.WallSmashMinSpeed > 0f && MathF.Abs(mover.CurrentSpeed) < mover.WallSmashMinSpeed)
             return;
 
-        if (_timing.CurTime < mover.NextMobCollisionSelfDamageAt)
+        if (_timing.CurTime < mover.NextWallSmashAt)
             return;
 
-        mover.NextMobCollisionSelfDamageAt = _timing.CurTime + TimeSpan.FromSeconds(mover.WallSmashCooldown);
+        mover.NextWallSmashAt = _timing.CurTime + TimeSpan.FromSeconds(mover.WallSmashCooldown);
         Dirty(vehicle, mover);
 
         var selfDamageMult = HasPlowInstalled(vehicle) ? mover.WallSmashPlowDamageMultiplier : 1f;
@@ -687,25 +568,20 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
     /// <summary>
     /// Applies the heavy-smash tread + hull integrity damage to the vehicle. Called for both
     /// hard-wall smashes and vehicle-smashable passes (windows/shutters/doors/etc.).
-    /// No-op if the vehicle isn't a smasher or already paid self-damage for this target recently.
-    /// Breakable structures are guaranteed-smash collision targets, so damage is charged whenever
-    /// one is actually cleared even if an earlier obstacle already spent most of the vehicle's speed.
+    /// No-op if the vehicle isn't a smasher, isn't currently moving fast enough, or is still on cooldown.
     /// <paramref name="targetDamageMultiplier"/> scales the vehicle's self-damage — set below 1
     /// for softer targets (e.g. resin walls) so they're cheaper to plow through.
     /// </summary>
-    private void ApplyHeavySmashSelfDamage(
-        EntityUid vehicle,
-        GridVehicleMoverComponent mover,
-        EntityUid target,
-        float targetDamageMultiplier = 1f)
+    private void ApplyHeavySmashSelfDamage(EntityUid vehicle, GridVehicleMoverComponent mover, float targetDamageMultiplier = 1f)
     {
-        if (!mover.CanSmashWalls)
+        if (!IsSmashingCapable(mover))
             return;
 
-        if (IsWallSmashOnCooldown(vehicle, target))
+        if (_timing.CurTime < mover.NextWallSmashAt)
             return;
 
-        StartWallSmashCooldown(vehicle, target, mover.WallSmashCooldown);
+        mover.NextWallSmashAt = _timing.CurTime + TimeSpan.FromSeconds(mover.WallSmashCooldown);
+        Dirty(vehicle, mover);
 
         if (_net.IsClient)
             return;
@@ -739,7 +615,6 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
         float clearance,
         MapId mapId,
         bool isVehicle,
-        bool plowImpact,
         bool applyEffects,
         bool debug,
         HashSet<EntityUid>? blockers,
@@ -751,28 +626,11 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
 
         var preCollisionSpeed = MathF.Abs(mover.CurrentSpeed);
 
-        var smashResult = TryHeavySmash(vehicle, mover, other, plowImpact, applyEffects, ref playedCollisionSound);
-        if (smashResult == HeavySmashResult.Destroyed)
-        {
-            return CollisionHandlingResult.Continue;
-        }
-
-        // Sustained powered demolition must keep receiving movement attempts.
-        // Treating an intact wall as a normal failed ram engages crash immobility,
-        // which outlasts the contact grace and restarts the warmup forever.
-        if (smashResult is HeavySmashResult.PoweredDemolishing or HeavySmashResult.PoweredIndestructible)
-        {
-            AddBlockingCollision(vehicle, other, collisionAabb, otherAabb, clearance, mapId, debug, blockers);
-            return CollisionHandlingResult.Blocked;
-        }
-
-        if (smashResult == HeavySmashResult.Blocked)
+        if (TryHeavySmash(vehicle, mover, other, applyEffects, ref playedCollisionSound))
         {
             if (applyEffects && ShouldApplyCrashImmobility(mover, preCollisionSpeed))
                 ApplyCrashImmobility(vehicle, mover);
-
-            AddBlockingCollision(vehicle, other, collisionAabb, otherAabb, clearance, mapId, debug, blockers);
-            return CollisionHandlingResult.Blocked;
+            return CollisionHandlingResult.Continue;
         }
 
         if (applyEffects)
@@ -837,137 +695,47 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
         return true;
     }
 
-    private HeavySmashResult TryHeavySmash(
+    private bool TryHeavySmash(
         EntityUid vehicle,
         GridVehicleMoverComponent mover,
         EntityUid target,
-        bool plowImpact,
         bool applyEffects,
         ref bool playedCollisionSound)
     {
-        var poweredDemolition = TryGetPoweredDemolitionDamage(
-            vehicle,
-            mover,
-            target,
-            plowImpact,
-            applyEffects,
-            out var poweredRawDamage,
-            out var poweredChassis);
+        if (!IsSmashingCapable(mover))
+            return false;
 
-        if (_tag.HasTag(target, SmashIgnoreTag) || !HasComp<DamageableComponent>(target))
-        {
-            if (poweredDemolition)
-            {
-                if (applyEffects)
-                {
-                    mover.IsPoweredDemolishing = false;
-                    ShowPoweredDemolitionFeedback(vehicle, target, poweredChassis, destructible: false);
-                }
+        if (_tag.HasTag(target, SmashIgnoreTag))
+            return false;
 
-                return HeavySmashResult.PoweredIndestructible;
-            }
+        if (!HasComp<DamageableComponent>(target))
+            return false;
 
-            return HeavySmashResult.NotSmashable;
-        }
-
-        if (!IsSmashingCapable(mover) && !poweredDemolition)
-            return HeavySmashResult.NotSmashable;
-
-        if (IsWallSmashOnCooldown(vehicle, target))
-        {
-            return poweredDemolition
-                ? HeavySmashResult.PoweredDemolishing
-                : HeavySmashResult.NotSmashable;
-        }
-
-        var impactSpeed = MathF.Abs(mover.CurrentSpeed);
-        var structureDamageMultiplier = GetStructureDamageMultiplier(vehicle, mover, plowImpact);
-        var impactRawDamage = impactSpeed * impactSpeed * structureDamageMultiplier;
-        var availableRawDamage = MathF.Max(impactRawDamage, poweredRawDamage);
-        var availableEquivalentSpeed = structureDamageMultiplier > 0f
-            ? MathF.Sqrt(availableRawDamage / structureDamageMultiplier)
-            : 0f;
-        var query = new DestructionMomentumQueryEvent(
-            target,
-            availableEquivalentSpeed,
-            structureDamageMultiplier);
-        if (!_net.IsClient)
-            RaiseLocalEvent(ref query);
-
-        if (poweredDemolition && !_net.IsClient && !query.HasRemovalThreshold)
-        {
-            if (applyEffects)
-            {
-                mover.IsPoweredDemolishing = false;
-                ShowPoweredDemolitionFeedback(vehicle, target, poweredChassis, destructible: false);
-            }
-
-            return HeavySmashResult.PoweredIndestructible;
-        }
-
-        if (poweredDemolition && applyEffects)
-            ShowPoweredDemolitionFeedback(vehicle, target, poweredChassis, destructible: true);
+        if (_timing.CurTime < mover.NextWallSmashAt)
+            return false;
 
         // Probes must be side-effect-free — otherwise the probe pass zeros speed and
         // sets the cooldown, and the effects pass that follows it takes the wrong
         // branch (cooldown hit → fallback IsSmashingCapable check fails because
         // speed was just zeroed → ApplyCrashImmobility never fires).
         if (!applyEffects)
-        {
-            // Destruction thresholds are server-only. Keep predicted AEV movement
-            // blocked until the server actually removes the obstruction.
-            if (_net.IsClient && poweredDemolition)
-                return HeavySmashResult.PoweredDemolishing;
-
-            if (query.HasRemovalThreshold && !query.CanDestroy)
-                return poweredDemolition
-                    ? HeavySmashResult.PoweredDemolishing
-                    : HeavySmashResult.Blocked;
-
-            return HeavySmashResult.Destroyed;
-        }
+            return true;
 
         PlayCollisionSound(vehicle, ref playedCollisionSound);
-        StartWallSmashCooldown(vehicle, target, mover.WallSmashCooldown);
-
-        if (_net.IsClient)
-        {
-            return poweredDemolition
-                ? HeavySmashResult.PoweredDemolishing
-                : HeavySmashResult.Destroyed;
-        }
-
-        var rawDamage = availableRawDamage;
-        if (query.HasRemovalThreshold)
-        {
-            var requiredRawDamage = query.RequiredSpeed * query.RequiredSpeed * structureDamageMultiplier;
-            rawDamage = query.CanDestroy ? requiredRawDamage : availableRawDamage;
-
-            // Powered demolition supplies force, not artificial momentum. Preserve
-            // movement only when the physical impact alone could afford the wall.
-            var physicalImpactCanDestroy = query.CanDestroy && impactRawDamage >= requiredRawDamage;
-            SetRemainingSmashSpeed(
-                mover,
-                physicalImpactCanDestroy
-                    ? ImpactEnergySolver.GetRemainingSpeed(impactSpeed, query.RequiredSpeed)
-                    : 0f);
-        }
-        else
-        {
-            // Preserve legacy behavior for unusual damageables without a
-            // destruction threshold from which a physical cost can be derived.
-            ApplyHeavySmashSlowdown(mover);
-        }
-
+        ApplyHeavySmashSlowdown(mover);
+        mover.NextWallSmashAt = _timing.CurTime + TimeSpan.FromSeconds(mover.WallSmashCooldown);
         Dirty(vehicle, mover);
 
-        if (rawDamage > 0f)
+        if (_net.IsClient)
+            return true;
+
+        if (mover.WallSmashDamage > 0f)
         {
             var damage = new DamageSpecifier
             {
                 DamageDict =
                 {
-                    [CollisionDamageType] = (double) rawDamage,
+                    [CollisionDamageType] = (double) mover.WallSmashDamage,
                 },
             };
             _damageable.TryChangeDamage(target, damage, true, origin: vehicle, tool: vehicle);
@@ -989,152 +757,7 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
                 _hardpoints.DamageVehicleHull(vehicle, hull);
         }
 
-        if (query.HasRemovalThreshold && !query.CanDestroy)
-        {
-            return poweredDemolition
-                ? HeavySmashResult.PoweredDemolishing
-                : HeavySmashResult.Blocked;
-        }
-
-        return HeavySmashResult.Destroyed;
-    }
-
-    private bool TryGetPoweredDemolitionDamage(
-        EntityUid vehicle,
-        GridVehicleMoverComponent mover,
-        EntityUid target,
-        bool plowImpact,
-        bool applyEffects,
-        out float rawDamage,
-        out VehiclePlowChassisComponent? chassis)
-    {
-        rawDamage = 0f;
-        chassis = null;
-        if (!plowImpact ||
-            mover.CurrentSpeed <= 0f ||
-            !TryComp(vehicle, out chassis) ||
-            chassis.PoweredDemolitionDamagePerSecond <= 0f ||
-            !TryGetFunctionalPlow(vehicle, out _, out var plowUid))
-        {
-            if (applyEffects)
-                _poweredDemolitionContacts.Remove(vehicle);
-
-            return false;
-        }
-
-        if (applyEffects)
-            mover.IsPoweredDemolishing = true;
-
-        var now = _timing.CurTime;
-        if (!_poweredDemolitionContacts.TryGetValue(vehicle, out var contact) ||
-            contact.Target != target ||
-            now - contact.LastContactAt > PoweredDemolitionContactGrace)
-        {
-            if (applyEffects)
-            {
-                _poweredDemolitionContacts[vehicle] = new PoweredDemolitionContact(
-                    target,
-                    now,
-                    now,
-                    TimeSpan.Zero,
-                    false,
-                    false);
-            }
-
-            return true;
-        }
-
-        if (applyEffects)
-            _poweredDemolitionContacts[vehicle] = contact with { LastContactAt = now };
-
-        if (now - contact.StartedAt < TimeSpan.FromSeconds(MathF.Max(0f, chassis.PoweredDemolitionWarmup)))
-            return true;
-
-        rawDamage = GridVehicleMotionSimulator.GetPoweredDemolitionDamage(
-            chassis.PoweredDemolitionDamagePerSecond,
-            mover.WallSmashCooldown,
-            _hardpoints.GetHardpointPerformanceMultiplier(plowUid));
         return true;
-    }
-
-    private void ShowPoweredDemolitionFeedback(
-        EntityUid vehicle,
-        EntityUid target,
-        VehiclePlowChassisComponent? chassis,
-        bool destructible)
-    {
-        if (_net.IsClient ||
-            chassis == null ||
-            !_poweredDemolitionContacts.TryGetValue(vehicle, out var contact) ||
-            contact.Target != target)
-        {
-            return;
-        }
-
-        var now = _timing.CurTime;
-        if (destructible)
-        {
-            if (!contact.WorkingAnnounced &&
-                TryComp(vehicle, out VehicleComponent? vehicleComp) &&
-                vehicleComp.Operator is { } driver)
-            {
-                _popup.PopupCursor(
-                    Loc.GetString("rmc-vehicle-powered-demolition-working"),
-                    driver,
-                    PopupType.Medium);
-                contact = contact with { WorkingAnnounced = true };
-            }
-
-            if (chassis.PoweredDemolitionSound != null && now >= contact.NextSoundAt)
-            {
-                _audio.PlayPvs(chassis.PoweredDemolitionSound, vehicle);
-                contact = contact with
-                {
-                    NextSoundAt = now + TimeSpan.FromSeconds(MathF.Max(0f, chassis.PoweredDemolitionSoundCooldown)),
-                };
-            }
-        }
-        else if (!contact.IndestructibleAnnounced)
-        {
-            if (TryComp(vehicle, out VehicleComponent? vehicleComp) &&
-                vehicleComp.Operator is { } driver)
-            {
-                _popup.PopupCursor(
-                    Loc.GetString("rmc-vehicle-powered-demolition-indestructible"),
-                    driver,
-                    PopupType.LargeCaution);
-            }
-
-            contact = contact with { IndestructibleAnnounced = true };
-        }
-
-        _poweredDemolitionContacts[vehicle] = contact;
-    }
-
-    private bool IsWallSmashOnCooldown(EntityUid vehicle, EntityUid target)
-    {
-        return _wallSmashCooldowns.IsActive(vehicle, target, _timing.CurTime);
-    }
-
-    private void StartWallSmashCooldown(EntityUid vehicle, EntityUid target, float cooldownSeconds)
-    {
-        _wallSmashCooldowns.Start(
-            vehicle,
-            target,
-            _timing.CurTime,
-            TimeSpan.FromSeconds(MathF.Max(0f, cooldownSeconds)));
-    }
-
-    private static void SetRemainingSmashSpeed(GridVehicleMoverComponent mover, float remainingSpeed)
-    {
-        var direction = MathF.Sign(mover.CurrentSpeed);
-        mover.CurrentSpeed = MathF.Max(0f, remainingSpeed) * direction;
-        if (mover.CurrentSpeed != 0f)
-            return;
-
-        mover.IsCommittedToMove = false;
-        mover.IsPushMove = false;
-        mover.PushDirection = Vector2i.Zero;
     }
 
     private bool HasPlowInstalled(EntityUid vehicle)
@@ -1149,51 +772,6 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
 
             if (_tag.HasTag(item, PlowTag))
                 return true;
-        }
-
-        return false;
-    }
-
-    private float GetStructureDamageMultiplier(
-        EntityUid vehicle,
-        GridVehicleMoverComponent mover,
-        bool plowImpact)
-    {
-        var multiplier = MathF.Max(0f, mover.WallSmashDamage);
-        if (!plowImpact || !TryGetFunctionalPlow(vehicle, out var plow, out var plowUid))
-            return multiplier;
-
-        var chassisMultiplier = TryComp(vehicle, out VehiclePlowChassisComponent? chassis)
-            ? MathF.Max(1f, chassis.StructureDamageMultiplier)
-            : 1f;
-        var authoredBonus = MathF.Max(1f, plow.StructureDamageMultiplier) * chassisMultiplier;
-        var performance = _hardpoints.GetHardpointPerformanceMultiplier(plowUid);
-        var effectiveBonus = 1f + (authoredBonus - 1f) * performance;
-        return multiplier * effectiveBonus;
-    }
-
-    private bool TryGetFunctionalPlow(
-        EntityUid vehicle,
-        [NotNullWhen(true)] out VehiclePlowComponent? plow,
-        out EntityUid plowUid)
-    {
-        plow = null;
-        plowUid = default;
-        if (!TryComp(vehicle, out ItemSlotsComponent? itemSlots))
-            return false;
-
-        foreach (var slot in itemSlots.Slots.Values)
-        {
-            if (slot.Item is not { } item ||
-                !TryComp(item, out VehiclePlowComponent? candidate) ||
-                !_hardpoints.IsHardpointFunctional(item))
-            {
-                continue;
-            }
-
-            plow = candidate;
-            plowUid = item;
-            return true;
         }
 
         return false;
@@ -1507,7 +1085,7 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
         return new Vector2i(0, Math.Sign(direction.Y));
     }
 
-    private bool TrySmash(EntityUid target, EntityUid vehicle, bool plowImpact, ref bool playedCollisionSound)
+    private bool TrySmash(EntityUid target, EntityUid vehicle, ref bool playedCollisionSound)
     {
         if (!TryComp(target, out VehicleSmashableComponent? smashable))
             return false;
@@ -1520,28 +1098,7 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
             ConsumeCollisionSoundCooldown(vehicle, ref playedCollisionSound);
 
         if (TryComp(vehicle, out GridVehicleMoverComponent? mover))
-        {
-            var impactSpeed = MathF.Abs(mover.CurrentSpeed);
-            var structureDamageMultiplier = GetStructureDamageMultiplier(vehicle, mover, plowImpact);
-            var query = new DestructionMomentumQueryEvent(target, impactSpeed, structureDamageMultiplier);
-            if (!_net.IsClient)
-                RaiseLocalEvent(ref query);
-
-            if (query.CanDestroy)
-            {
-                SetRemainingSmashSpeed(
-                    mover,
-                    ImpactEnergySolver.GetRemainingSpeed(impactSpeed, query.RequiredSpeed));
-                Dirty(vehicle, mover);
-            }
-            else
-            {
-                // Match dropship behavior for explicit guaranteed-smash props:
-                // use their authored fallback only when no affordable physical
-                // destruction cost can be derived.
-                ApplySmashSlowdown(vehicle, mover, smashable);
-            }
-        }
+            ApplySmashSlowdown(vehicle, mover, smashable);
 
         if (_net.IsClient)
             return true;

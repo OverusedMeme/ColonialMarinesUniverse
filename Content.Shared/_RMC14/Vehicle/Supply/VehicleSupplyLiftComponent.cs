@@ -96,9 +96,6 @@ public sealed partial class VehicleSupplyLiftComponent : Component
     public readonly HashSet<string> Ordered = new();
 
     [NonSerialized]
-    public readonly HashSet<string> TechGranted = new(); // CMU14: keys with tech-granted extras, exempt from group limits
-
-    [NonSerialized]
     public readonly Dictionary<string, string> OrderedGroups = new();
 
     [NonSerialized]

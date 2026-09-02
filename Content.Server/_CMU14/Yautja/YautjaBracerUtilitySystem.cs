@@ -79,8 +79,6 @@ public sealed partial class YautjaBracerUtilitySystem : EntitySystem
         SubscribeLocalEvent<YautjaBracerComponent, YautjaCreateStabilisingCrystalActionEvent>(OnCreateStabilisingCrystal);
         SubscribeLocalEvent<YautjaBracerComponent, YautjaCreateHumanStabilisingCrystalActionEvent>(OnCreateHumanStabilisingCrystal);
         SubscribeLocalEvent<YautjaBracerComponent, YautjaCreateHuntingTrapActionEvent>(OnCreateHuntingTrap);
-        SubscribeLocalEvent<YautjaBracerComponent, YautjaCreateFieldRationActionEvent>(OnCreateFieldRation);
-        SubscribeLocalEvent<YautjaBracerComponent, YautjaCreateHuntingCanteenActionEvent>(OnCreateHuntingCanteen);
         SubscribeLocalEvent<YautjaBracerComponent, YautjaOverloadBracerDoAfterEvent>(OnOverloadBracerDoAfter);
         SubscribeLocalEvent<YautjaTechItemComponent, YautjaTechMisusedEvent>(OnTechMisused);
 
@@ -208,26 +206,6 @@ public sealed partial class YautjaBracerUtilitySystem : EntitySystem
         TryCreateStabilisingCrystal(ent, args.Performer);
     }
 
-    private void OnCreateFieldRation(Entity<YautjaBracerComponent> ent, ref YautjaCreateFieldRationActionEvent args)
-    {
-        if (args.Handled || !_rmcActions.TryUseAction(args))
-            return;
-
-        args.Handled = true;
-        TryCreateItem(ent, args.Performer, ent.Comp.FieldRationPrototype, ent.Comp.FieldRationCost,
-            ent.Comp.FieldRationCooldown, ref ent.Comp.NextFieldRation, "cmu-yautja-bracer-item-created");
-    }
-
-    private void OnCreateHuntingCanteen(Entity<YautjaBracerComponent> ent, ref YautjaCreateHuntingCanteenActionEvent args)
-    {
-        if (args.Handled || !_rmcActions.TryUseAction(args))
-            return;
-
-        args.Handled = true;
-        TryCreateItem(ent, args.Performer, ent.Comp.HuntingCanteenPrototype, ent.Comp.HuntingCanteenCost,
-            ent.Comp.HuntingCanteenCooldown, ref ent.Comp.NextHuntingCanteen, "cmu-yautja-bracer-item-created");
-    }
-
     private void OnCreateHumanStabilisingCrystal(Entity<YautjaBracerComponent> ent, ref YautjaCreateHumanStabilisingCrystalActionEvent args)
     {
         if (args.Handled)
@@ -293,7 +271,7 @@ public sealed partial class YautjaBracerUtilitySystem : EntitySystem
             return true;
         }
 
-        return TryCreateItem(bracer, user, bracer.Comp.StabilisingCrystalPrototype, bracer.Comp.StabilisingCrystalCost, bracer.Comp.StabilisingCrystalCooldown, ref bracer.Comp.NextStabilisingCrystal, "cmu-yautja-bracer-item-created");
+        return TryCreateItem(bracer, user, bracer.Comp.StabilisingCrystalPrototype, bracer.Comp.StabilisingCrystalCost, bracer.Comp.StabilisingCrystalCooldown, ref bracer.Comp.NextStabilisingCrystal, "cmu-yautja-bracer-crystal-created");
     }
 
     public bool TryCreateHumanStabilisingCrystal(Entity<YautjaBracerComponent> bracer, EntityUid user)
@@ -307,7 +285,7 @@ public sealed partial class YautjaBracerUtilitySystem : EntitySystem
             return true;
         }
 
-        return TryCreateItem(bracer, user, bracer.Comp.HumanStabilisingCrystalPrototype, bracer.Comp.HumanStabilisingCrystalCost, bracer.Comp.StabilisingCrystalCooldown, ref bracer.Comp.NextStabilisingCrystal, "cmu-yautja-bracer-item-created");
+        return TryCreateItem(bracer, user, bracer.Comp.HumanStabilisingCrystalPrototype, bracer.Comp.HumanStabilisingCrystalCost, bracer.Comp.StabilisingCrystalCooldown, ref bracer.Comp.NextStabilisingCrystal, "cmu-yautja-bracer-human-crystal-created");
     }
 
 
@@ -663,10 +641,10 @@ public sealed partial class YautjaBracerUtilitySystem : EntitySystem
                 ToggleIdChip(bracer, user);
                 break;
             case 2:
-                TryCreateItem(bracer, user, bracer.Comp.StabilisingCrystalPrototype, bracer.Comp.StabilisingCrystalCost, bracer.Comp.StabilisingCrystalCooldown, ref bracer.Comp.NextStabilisingCrystal, "cmu-yautja-bracer-item-created");
+                TryCreateItem(bracer, user, bracer.Comp.StabilisingCrystalPrototype, bracer.Comp.StabilisingCrystalCost, bracer.Comp.StabilisingCrystalCooldown, ref bracer.Comp.NextStabilisingCrystal, "cmu-yautja-bracer-crystal-created");
                 break;
             case 3:
-                TryCreateItem(bracer, user, bracer.Comp.HumanStabilisingCrystalPrototype, bracer.Comp.HumanStabilisingCrystalCost, bracer.Comp.StabilisingCrystalCooldown, ref bracer.Comp.NextStabilisingCrystal, "cmu-yautja-bracer-item-created");
+                TryCreateItem(bracer, user, bracer.Comp.HumanStabilisingCrystalPrototype, bracer.Comp.HumanStabilisingCrystalCost, bracer.Comp.StabilisingCrystalCooldown, ref bracer.Comp.NextStabilisingCrystal, "cmu-yautja-bracer-human-crystal-created");
                 break;
             default:
                 TryCreateItem(bracer, user, bracer.Comp.HuntingTrapPrototype, bracer.Comp.HuntingTrapCost, bracer.Comp.HuntingTrapCooldown, ref bracer.Comp.NextHuntingTrap, "cmu-yautja-bracer-hunting-trap-created");

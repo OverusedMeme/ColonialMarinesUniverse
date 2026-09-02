@@ -102,11 +102,8 @@ namespace Content.Shared.Chemistry.Components
             _heatCapacity = 0;
             foreach (var (reagent, quantity) in Contents)
             {
-                if (!ReagentSystem.TryIndex(reagent.Prototype, out var proto)) // CMU14: generated reagents can be missing from the registry, skip them instead of crashing every solution mix
-                    continue;
-
                 _heatCapacity += (float) quantity *
-                                    proto.SpecificHeat;
+                                    ReagentSystem.Index(reagent.Prototype).SpecificHeat;
             }
 
             _heatCapacityUpdateCounter = 0;

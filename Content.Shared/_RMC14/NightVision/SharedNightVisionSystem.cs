@@ -11,7 +11,6 @@ using Content.Shared.Rounding;
 using Content.Shared.Toggleable;
 using Content.Shared.Verbs;
 using Robust.Shared.Audio.Systems;
-using Robust.Shared.Maths;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._RMC14.NightVision;
@@ -289,18 +288,15 @@ public abstract partial class SharedNightVisionSystem : EntitySystem
             {
                 nightVision = EnsureComp<NightVisionComponent>(user);
 
-                if (item.Comp.ExperimentalMesonFov || item.Comp.RestorePreviousState)
+                if (item.Comp.ExperimentalMesonFov)
                 {
-                    // Some equipment temporarily overrides an existing vision source and must restore it on disable.
+                    // Experimental mesons temporarily override innate synth vision and must restore it on disable.
                     item.Comp.HadNightVision = true;
                     item.Comp.PreviousState = nightVision.State;
                     item.Comp.PreviousGreen = nightVision.Green;
                     item.Comp.PreviousMesons = nightVision.Mesons;
                     item.Comp.PreviousExperimentalMesonFov = nightVision.ExperimentalMesonFov;
                     item.Comp.PreviousBlockScopes = nightVision.BlockScopes;
-                    item.Comp.PreviousTint = nightVision.Tint;
-                    item.Comp.PreviousNoiseStrength = nightVision.NoiseStrength;
-                    item.Comp.PreviousVignetteStrength = nightVision.VignetteStrength;
                 }
                 else
                 {
@@ -319,9 +315,6 @@ public abstract partial class SharedNightVisionSystem : EntitySystem
                 nightVision.Mesons = item.Comp.Mesons;
                 nightVision.ExperimentalMesonFov = item.Comp.ExperimentalMesonFov;
                 nightVision.BlockScopes = item.Comp.BlockScopes;
-                nightVision.Tint = item.Comp.Tint;
-                nightVision.NoiseStrength = item.Comp.NoiseStrength;
-                nightVision.VignetteStrength = item.Comp.VignetteStrength;
                 Dirty(user, nightVision);
             }
             else
@@ -334,9 +327,6 @@ public abstract partial class SharedNightVisionSystem : EntitySystem
                     Mesons = item.Comp.Mesons,
                     ExperimentalMesonFov = item.Comp.ExperimentalMesonFov,
                     BlockScopes = item.Comp.BlockScopes,
-                    Tint = item.Comp.Tint,
-                    NoiseStrength = item.Comp.NoiseStrength,
-                    VignetteStrength = item.Comp.VignetteStrength,
                 };
 
                 AddComp(user, nightVision, true);
@@ -346,37 +336,6 @@ public abstract partial class SharedNightVisionSystem : EntitySystem
 
         Dirty(item);
         _actions.SetToggled(item.Comp.Action, true);
-    }
-
-    /// <summary>
-    /// Adds a non-toggleable full night-vision source to a worn head item and enables it for its wearer.
-    /// Intended for equipment whose activation is controlled by another linked system.
-    /// </summary>
-    public NightVisionItemComponent EnableLinkedHeadNightVision(
-        EntityUid item,
-        EntityUid user,
-        Color? tint = null,
-        float noiseStrength = 0.04f,
-        float vignetteStrength = 3.168f)
-    {
-        var nightVision = new NightVisionItemComponent
-        {
-            ActionId = null,
-            SlotFlags = SlotFlags.HEAD,
-            Toggleable = false,
-            EnableOnEquip = false,
-            Green = true,
-            BlockScopes = true,
-            Tint = tint,
-            NoiseStrength = noiseStrength,
-            VignetteStrength = vignetteStrength,
-            RestorePreviousState = true,
-        };
-
-        AddComp(item, nightVision, true);
-        Dirty(item, nightVision);
-        EnableNightVisionItem((item, nightVision), user);
-        return nightVision;
     }
 
     protected virtual void NightVisionChanged(Entity<NightVisionComponent> ent)
@@ -397,7 +356,7 @@ public abstract partial class SharedNightVisionSystem : EntitySystem
 
         if (TryComp(user, out NightVisionComponent? nightVision))
         {
-            if ((item.Comp.ExperimentalMesonFov || item.Comp.RestorePreviousState) && item.Comp.HadNightVision)
+            if (item.Comp.ExperimentalMesonFov && item.Comp.HadNightVision)
             {
                 // Restore the previous component state so innate synth night vision survives item toggles.
                 nightVision.State = item.Comp.PreviousState;
@@ -405,9 +364,6 @@ public abstract partial class SharedNightVisionSystem : EntitySystem
                 nightVision.Mesons = item.Comp.PreviousMesons;
                 nightVision.ExperimentalMesonFov = item.Comp.PreviousExperimentalMesonFov;
                 nightVision.BlockScopes = item.Comp.PreviousBlockScopes;
-                nightVision.Tint = item.Comp.PreviousTint;
-                nightVision.NoiseStrength = item.Comp.PreviousNoiseStrength;
-                nightVision.VignetteStrength = item.Comp.PreviousVignetteStrength;
                 Dirty(user.Value, nightVision);
                 UpdateAlert((user.Value, nightVision));
             }
@@ -423,9 +379,6 @@ public abstract partial class SharedNightVisionSystem : EntitySystem
         item.Comp.PreviousMesons = false;
         item.Comp.PreviousExperimentalMesonFov = false;
         item.Comp.PreviousBlockScopes = false;
-        item.Comp.PreviousTint = null;
-        item.Comp.PreviousNoiseStrength = 0.04f;
-        item.Comp.PreviousVignetteStrength = 3.168f;
         Dirty(item);
     }
 

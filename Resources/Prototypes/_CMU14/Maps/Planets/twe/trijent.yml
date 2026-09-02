@@ -13,7 +13,7 @@
     - LACN
     - USCM
     - RMC
-    - WYPMC
+    - WEYU
     platoonsOpfor:
     - UPP
     - CMBCIU
@@ -26,7 +26,6 @@
     opforinship: true
     daycycleenabled: true
     thirdparties:
-    - TWEParamarinesSurv
     - ProdigySurvLarge
     - ProdigySurvMedium
     - ProdigySurvSmall
@@ -59,38 +58,11 @@
     threats:
     - XenoThreat
     - NeomorphsThreat
-    # - AbominationsThreatDS # no xenocf markers
-    - ApeThreatDS
-    - BadBloodClanThreat
-    # - XenoThreatCF # no xenocf markers
-    # - NeomorphsThreatCF # no xenocf markers
-    - CultistThreatCF
-    - WendigoThreatCF
-    # - AbominationsThreatCF # no xenocf markers
-    - TribalsThreatCF
-    - ApeThreatCF
+    #- TribalsThreat
+#    - badBloodClanThreat
     jobScalingFof: DefaultGovforOpforScale
     jobScalingIns: DefaultInsurgencyScale
 
 - type: lorePrimer
   id: AU14PrimerPlanetTrijent
   planetText: "Date 2179 - LV-670 Raijin Hydroelectric (formerly known as Trijent Dam), a Three World Empire water treatment facility serving a major prospera."
-
-- type: gameMap
-  id: AUTrijentMap
-  mapName: Trijent
-  mapPath: /Maps/_AU14/trijent.yml
-  mapsBelow:
-  - /Maps/_AU14/trijent_below.yml
-  mapsAbove:
-  - /Maps/_AU14/trijent_above.yml
-  minPlayers: 0
-  maxPlayers: 500
-  maxRandomOffset: 0
-  randomRotation: false
-  stations:
-    AUTrijent:
-      stationProto: StandardUNMCWarship
-      components:
-        - type: StationNameSetup
-          mapNameTemplate: 'Raijin Hydroelectric'

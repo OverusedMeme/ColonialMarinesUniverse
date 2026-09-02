@@ -1,4 +1,3 @@
-using Content.Server._CMU14.Round.Objectives;
 using Content.Shared._CMU14.Round.Roles;
 using Content.Shared.Roles;
 using Robust.Shared.GameObjects;
@@ -132,10 +131,7 @@ public sealed partial class RoundJobProfileSystem : EntitySystem
         }
 
         if (applied)
-        {
             EnsureComp<RoundJobProfileAppliedComponent>(target);
-            RaiseLocalEvent(new ObjectiveWatchedEntityStartupEvent(target));
-        }
 
         return applied;
     }

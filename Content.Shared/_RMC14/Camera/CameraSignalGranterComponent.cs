@@ -1,4 +1,3 @@
-using Content.Shared.Camera;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 
@@ -8,5 +7,5 @@ namespace Content.Shared._RMC14.Camera;
 public sealed partial class CameraSignalGranterComponent : Component
 {
     [DataField, AutoNetworkedField]
-    public List<ProtoId<CameraNetworkPrototype>> ProtoIds = new();
+    public List<EntProtoId> ProtoIds = new();
 }

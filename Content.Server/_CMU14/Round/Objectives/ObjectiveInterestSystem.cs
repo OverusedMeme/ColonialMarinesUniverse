@@ -1,7 +1,5 @@
-using Content.Server.Ghost.Roles;
 using Content.Shared._CMU14.Round.Objectives.Components;
 using Content.Shared._CMU14.ZLevels.Core.EntitySystems;
-using Content.Shared.Mind.Components;
 using Robust.Shared.Map;
 
 namespace Content.Server._CMU14.Round.Objectives;
@@ -11,7 +9,7 @@ public sealed class ObjectiveWatchedEntityStartupEvent(EntityUid uid) : EntityEv
     public readonly EntityUid Uid = uid;
 }
 
-public sealed partial class ObjectiveInterestSystem : EntitySystem
+public sealed class ObjectiveInterestSystem : EntitySystem
 {
     [Dependency] private CMUSharedZLevelsSystem _zLevels = default!;
 
@@ -23,13 +21,9 @@ public sealed partial class ObjectiveInterestSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<MetaDataComponent, ComponentStartup>(OnEntityStartup);
-        SubscribeLocalEvent<MindContainerComponent, MindAddedMessage>(OnMindAdded, after: new[] { typeof(GhostRoleSystem) });
     }
 
     private void OnEntityStartup(EntityUid uid, MetaDataComponent meta, ref ComponentStartup args)
-        => RaiseLocalEvent(new ObjectiveWatchedEntityStartupEvent(uid));
-
-    private void OnMindAdded(EntityUid uid, MindContainerComponent comp, MindAddedMessage args)
         => RaiseLocalEvent(new ObjectiveWatchedEntityStartupEvent(uid));
 
     public override void Shutdown()

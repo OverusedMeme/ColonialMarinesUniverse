@@ -4,15 +4,14 @@ using Content.Server.Shuttles.Events;
 using Content.Server._CMU14.Ops.ThirdParty;
 using Content.Server._RMC14.Dropship;
 using Content.Shared._CMU14.Medical.Anatomy.Bones;
-using Content.Shared._CMU14.Threats;
 using Content.Shared._CMU14.Medical.Anatomy.Organs;
 using Content.Shared._CMU14.Medical.Anatomy.Organs.Events;
 using Content.Shared._CMU14.Medical.Anatomy.Organs.Heart;
 using Content.Shared._CMU14.Medical.Injuries.Pain;
 using Content.Shared._CMU14.Medical.Injuries.Wounds;
-using Content.Shared._CMU14.Medical.Treatment.Surgery.Traits;
 using Content.Shared._RMC14.Dropship;
 using Content.Shared.AU14.Hospital;
+using Content.Shared.AU14.Scenario;
 using Content.Shared.Atmos.Rotting;
 using Content.Shared.Bed.Sleep;
 using Content.Shared.Body.Organ;
@@ -56,7 +55,6 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
     [Dependency] private SharedFractureSystem _fracture = default!;
     [Dependency] private SharedCMUWoundsSystem _wounds = default!;
     [Dependency] private CMUWoundLedgerSystem _woundLedger = default!;
-    [Dependency] private SharedCMUSurgicalTraitSystem _surgicalTraits = default!;
     [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedPainShockSystem _pain = default!;
@@ -110,15 +108,15 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
         new("Generator flashover. Burns and blunt trauma expected.", HospitalPatientClothingTheme.Engineering),
         new("Clinic oxygen fire. Medical staff and patients are inbound for burn and smoke exposure screening.", HospitalPatientClothingTheme.Medical),
         new("Dockyard loader collision. Cargo workers need evaluation for crush trauma and fractures.", HospitalPatientClothingTheme.Worksite),
-        new("Security checkpoint brawl. CMB riot marshals have minor ballistic and blunt trauma.", HospitalPatientClothingTheme.Cmb),
+        new("Security checkpoint brawl. CMB and NSPA personnel have minor ballistic and blunt trauma.", HospitalPatientClothingTheme.LawEnforcement),
     };
 
     private static readonly HospitalIncidentTemplate[] SeverityTwoIncidents =
     {
-        new("Colonial Marine dropship decompression event. Multiple fractures and internal bleeding suspected.", HospitalPatientClothingTheme.Marines),
+        new("Dropship decompression event. Multiple fractures and internal bleeding suspected.", HospitalPatientClothingTheme.Military),
         new("Industrial collapse. Casualties are stable, but several require urgent surgical follow-up.", HospitalPatientClothingTheme.Engineering),
         new("Hostile wildlife incident. Deep tissue trauma and organ injuries likely.", HospitalPatientClothingTheme.Civilian),
-        new("NSPA police shootout. Wounded constables are inbound with ballistic trauma.", HospitalPatientClothingTheme.Nspa),
+        new("Police shootout. Wounded CMB and NSPA officers are inbound with ballistic trauma.", HospitalPatientClothingTheme.LawEnforcement),
         new("Chemical plant accident. Biohazard teams report toxic exposure, burns, and organ complications.", HospitalPatientClothingTheme.Biohazard),
         new("Mining drill cave-in. Miners are inbound with crush injuries, fractures, and internal bleeding.", HospitalPatientClothingTheme.Mining),
     };
@@ -126,10 +124,10 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
     private static readonly HospitalIncidentTemplate[] SeverityThreeIncidents =
     {
         new("Mass casualty distress call. Critical patients inbound with compound fractures and internal bleeding.", HospitalPatientClothingTheme.Civilian),
-        new("UPP combat evacuation. Naval infantry casualties have heavy trauma, organ damage, and severe blood loss.", HospitalPatientClothingTheme.Upp),
+        new("Combat evacuation. Heavy trauma load, organ damage, and severe blood loss expected.", HospitalPatientClothingTheme.Military),
         new("Mining station breach. Patients are unstable and require complete trauma reconstruction.", HospitalPatientClothingTheme.Mining),
         new("CBRN containment failure. Biohazard casualties are inbound with severe burns and organ failure.", HospitalPatientClothingTheme.Biohazard),
-        new("CMB bureau raid gone wrong. Riot team casualties have critical ballistic and blast trauma.", HospitalPatientClothingTheme.Cmb),
+        new("Bureau raid gone wrong. CMB and NSPA tactical casualties have critical ballistic and blast trauma.", HospitalPatientClothingTheme.LawEnforcement),
         new("Orbital refinery explosion. Engineering crews are inbound with crush trauma, eschars, and internal bleeding.", HospitalPatientClothingTheme.Engineering),
     };
 
@@ -169,53 +167,29 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
         0.6f,
         0.25f);
 
-    private static readonly PatientClothingProfile MarineClothing = new(
-        new EntProtoId[] { "JumpsuitMarine", "CMJumpsuitMarineMedic", "CMJumpsuitMarineEngineer" },
-        new EntProtoId[] { "CMBootsBlack", "CMBootsBrown", "CMBootsJungle" },
-        new EntProtoId[] { "CMArmorM3Medium", "CMArmorM3Light", "CMArmorM3Heavy" },
-        new EntProtoId[] { "ArmorHelmetM10", "CMArmorHelmetM10Medic", "CMArmorHelmetM10MP", "CMArmorHelmetM10Tech" },
-        new EntProtoId[] { "CMHandsBlackMarine", "RMCHandsCombat", "RMCHandsFingerlessMarine" },
+    private static readonly PatientClothingProfile MilitaryClothing = new(
+        new EntProtoId[] { "CMJumpsuitMarineMedic", "CMJumpsuitMarineEngineer", "AU14JumpsuitFORECON", "AU14JumpsuitArmyUPP" },
+        new EntProtoId[] { "CMBootsBlack", "CMBootsBrown", "CMBootsJungle", "AU14BootsJungle", "AU14BootsUSArmy" },
+        new EntProtoId[] { "CMArmorM3Light", "CMArmorM3Medium", "RMCArmorM3LightPadded", "RMCArmorM3MediumPadded", "RMCArmorM3HeavyPadded" },
+        new EntProtoId[] { "AU14HeadHelmetRMC", "AU14HeadHelmetRMCBallistic", "AU14HeadHelmetRMCMedic", "AU14HeadBeretRMC", "CMHeadCapSPPBeret" },
+        new EntProtoId[] { "RMCHandsCombat", "RMCHandsBlack", "RMCHandsFingerlessMarine", "AU14PVEHandsFingerlessBlackGloves" },
         new EntProtoId[] { "CMMaskGas" },
-        1f,
-        0.95f,
         0.85f,
-        0.35f);
-
-    private static readonly PatientClothingProfile UppClothing = new(
-        new EntProtoId[] { "AU14FatiguesUPP", "AU14JumpsuitArmyUPP" },
-        new EntProtoId[] { "RMCBootsSPPBlack" },
-        new EntProtoId[] { "AU14UPPArmor", "AU14UPPArmorMinimalistic", "AU14UPPArmorBulky" },
-        new EntProtoId[] { "AU14UPPNavalInfantryHelmet", "AU14UPPPatrolCap", "AU14UPPBoonie" },
-        new EntProtoId[] { "RMCHandsBlack" },
-        new EntProtoId[] { "CMMaskGas" },
-        1f,
-        0.95f,
-        0.85f,
-        0.35f);
-
-    private static readonly PatientClothingProfile CmbClothing = new(
-        new EntProtoId[] { "AU14CMBUniform", "RMCSwatCMBUniform", "RMCMarshalCMBUniform" },
-        new EntProtoId[] { "CMBootsBlack", "CMBootsGrey" },
-        new EntProtoId[] { "CMArmorRiot" },
-        new EntProtoId[] { "ArmorHelmetRiot" },
-        new EntProtoId[] { "RMCHandsBlack", "RMCHandsCombat" },
-        new EntProtoId[] { "CMMaskGas" },
-        1f,
-        0.95f,
-        0.8f,
-        0.3f);
-
-    private static readonly PatientClothingProfile NspaClothing = new(
-        new EntProtoId[] { "RMCJumpsuitTSEPA" },
-        new EntProtoId[] { "CMBootsBlack" },
-        new EntProtoId[] { "RMCArmorVestTSEPA", "RMCArmourM4TSEPA", "RMCArmourM4TSEPAChief" },
-        new EntProtoId[] { "RMCHeadCapTSEPA", "RMCHeadCapTSEPAPeaked", "RMCHeadCapTSEPAPeakedGold" },
-        new EntProtoId[] { "RMCHandsBlack", "RMCHandsCombat" },
-        new EntProtoId[] { "CMMaskGas" },
-        1f,
-        0.85f,
+        0.75f,
         0.65f,
-        0.2f);
+        0.35f);
+
+    private static readonly PatientClothingProfile LawEnforcementClothing = new(
+        new EntProtoId[] { "AU14CMBUniform", "RMCJumpsuitTSEPA", "RMCSwatCMBUniform", "RMCMarshalCMBUniform" },
+        new EntProtoId[] { "CMBootsBlack", "CMBootsGrey", "RMCBootsCorporate" },
+        new EntProtoId[] { "AU14CMBDeputyWindbreaker", "AU14CMBMarshalWindbreaker", "RMCCoatSnowSurvivorCMBDeputy", "RMCArmorM4RMarshallMedium", "RMCArmorVestTSEPA", "RMCCoatTSEPA", "CMArmorM2MP" },
+        new EntProtoId[] { "RMCHeadCapBureau", "RMCHeadCapTSEPAPeaked", "RMCHeadCapTSEPAPeakedGold", "CMHeadCapMP", "CMHeadBeretRed" },
+        new EntProtoId[] { "RMCHandsBlack", "RMCHandsCombat", "AU14PVEHandsFingerlessBlackGloves" },
+        new EntProtoId[] { "CMMaskGas" },
+        0.85f,
+        0.7f,
+        0.55f,
+        0.15f);
 
     private static readonly PatientClothingProfile MiningClothing = new(
         new EntProtoId[] { "AU14CivilianKellandMiningClothes", "RMCJumpsuitMercenaryMiner", "RMCJumpsuitKhakiWorkwear", "RMCJumpsuitBlueWorkwear" },
@@ -260,12 +234,9 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
         SubscribeLocalEvent<HospitalEmergencyComputerComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<HospitalEmergencyComputerComponent, BoundUIOpenedEvent>(OnUiOpened);
         SubscribeLocalEvent<HospitalEmergencyComputerComponent, HospitalEmergencyApproveLandingMsg>(OnApproveLanding);
-        SubscribeLocalEvent<HospitalEmergencyComputerComponent, HospitalEmergencySkipContractMsg>(OnSkipContract);
         SubscribeLocalEvent<HospitalEmergencyComputerComponent, HospitalEmergencyRequestPickupMsg>(OnRequestPickup);
         SubscribeLocalEvent<HospitalEmergencyComputerComponent, HospitalEmergencyReleaseShuttleMsg>(OnReleaseShuttle);
         SubscribeLocalEvent<HospitalPatientComponent, MobStateChangedEvent>(OnPatientMobStateChanged);
-        SubscribeLocalEvent<RottingComponent, ComponentInit>(OnPatientRottingInit);
-        SubscribeLocalEvent<UnrevivableComponent, ComponentInit>(OnPatientUnrevivableInit);
         SubscribeLocalEvent<FTLCompletedEvent>(OnDropshipFtlCompleted);
     }
 
@@ -374,18 +345,6 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
         UpdateUi(ent);
     }
 
-    private void OnSkipContract(Entity<HospitalEmergencyComputerComponent> ent, ref HospitalEmergencySkipContractMsg args)
-    {
-        if (ent.Comp.Status != HospitalEmergencyStatus.AwaitingApproval)
-            return;
-
-        ClearPendingIncident(ent.Comp);
-        ent.Comp.Status = HospitalEmergencyStatus.Idle;
-        ent.Comp.NextIncidentAt = _timing.CurTime + ent.Comp.IncidentInterval;
-        ent.Comp.NextUiRefreshAt = _timing.CurTime;
-        UpdateUi(ent);
-    }
-
     private void OnRequestPickup(Entity<HospitalEmergencyComputerComponent> ent, ref HospitalEmergencyRequestPickupMsg args)
     {
         if (ent.Comp.Status != HospitalEmergencyStatus.Treating)
@@ -431,17 +390,12 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
     private void OnPatientMobStateChanged(Entity<HospitalPatientComponent> ent, ref MobStateChangedEvent args)
     {
         if (args.NewMobState != MobState.Dead)
+        {
             ent.Comp.ArrivedWithFatalOutcome = false;
-    }
+            return;
+        }
 
-    private void OnPatientRottingInit(Entity<RottingComponent> ent, ref ComponentInit args)
-    {
-        TryApplyPermanentDeathPenalty(ent.Owner);
-    }
-
-    private void OnPatientUnrevivableInit(Entity<UnrevivableComponent> ent, ref ComponentInit args)
-    {
-        TryApplyPermanentDeathPenalty(ent.Owner);
+        TryApplyImmediateDeathPenalty(ent);
     }
 
     private void OnDropshipFtlCompleted(ref FTLCompletedEvent args)
@@ -503,17 +457,6 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
 
         _audio.PlayPvs(comp.NotificationSound, ent);
         UpdateUi(ent);
-    }
-
-    private static void ClearPendingIncident(HospitalEmergencyComputerComponent comp)
-    {
-        comp.Casualties = 0;
-        comp.Severity = 0;
-        comp.Reward = 0;
-        comp.IncidentReport = string.Empty;
-        comp.PatientClothingTheme = HospitalPatientClothingTheme.Civilian;
-        comp.VipPatient = null;
-        comp.Patients.Clear();
     }
 
     private HospitalIncidentTemplate PickIncident(int severity)
@@ -685,13 +628,13 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
     private void GetShuttlePatientSpawnCoordinates(EntityUid shuttle, List<EntityCoordinates> coordinates)
     {
         coordinates.Clear();
-        var query = EntityQueryEnumerator<ThreatSpawnMarkerComponent, TransformComponent>();
+        var query = EntityQueryEnumerator<ScenarioSpawnMarkerComponent, TransformComponent>();
         while (query.MoveNext(out _, out var marker, out var xform))
         {
             if (xform.GridUid != shuttle && xform.ParentUid != shuttle)
                 continue;
 
-            if (!marker.ThirdParty)
+            if (!marker.Tags.Contains("force:third-party"))
                 continue;
 
             coordinates.Add(xform.Coordinates);
@@ -768,10 +711,8 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
             HospitalPatientClothingTheme.Worksite => WorksiteClothing,
             HospitalPatientClothingTheme.Engineering => EngineeringClothing,
             HospitalPatientClothingTheme.Medical => MedicalClothing,
-            HospitalPatientClothingTheme.Military or HospitalPatientClothingTheme.Marines => MarineClothing,
-            HospitalPatientClothingTheme.Upp => UppClothing,
-            HospitalPatientClothingTheme.Cmb or HospitalPatientClothingTheme.LawEnforcement => CmbClothing,
-            HospitalPatientClothingTheme.Nspa => NspaClothing,
+            HospitalPatientClothingTheme.Military => MilitaryClothing,
+            HospitalPatientClothingTheme.LawEnforcement => LawEnforcementClothing,
             HospitalPatientClothingTheme.Mining => MiningClothing,
             HospitalPatientClothingTheme.Biohazard => BiohazardClothing,
             _ => new PatientClothingProfile(
@@ -850,13 +791,12 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
             var fracture = EnsureComp<FractureComponent>(part);
             var fractureSeverity = severity switch
             {
-                1 => FractureSeverity.Compound,
+                1 => _random.Prob(0.75f) ? FractureSeverity.Simple : FractureSeverity.Compound,
                 2 => _random.Prob(0.7f) ? FractureSeverity.Compound : FractureSeverity.Shattered,
                 _ => _random.Prob(0.85f) ? FractureSeverity.Shattered : FractureSeverity.Compound,
             };
 
             _fracture.SetSeverity((part, fracture), fractureSeverity);
-            _surgicalTraits.RemoveTrait(part, CMUSurgicalTrait.ContaminatedWound);
         }
     }
 
@@ -992,8 +932,7 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
         var query = EntityQueryEnumerator<HospitalPatientComponent>();
         while (query.MoveNext(out var uid, out var patient))
         {
-            if (!patient.DeathPenaltyApplied && HasPermanentFatalOutcome(uid))
-                TryApplyPermanentDeathPenalty((uid, patient));
+            TryApplyImmediateDeathPenalty((uid, patient));
 
             if (patient.NextPainLineAt == TimeSpan.Zero)
             {
@@ -1084,15 +1023,14 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
                 continue;
             }
 
-            var fatalOutcome = HasFatalOutcome(patient);
-            var permanentOutcome = TryApplyPermanentDeathPenalty((patient, patientComp), ent, updateUi: false);
+            var fatalOutcome = TryApplyImmediateDeathPenalty((patient, patientComp), updateUi: false);
             var fatalOutcomeExempt = IsArrivalFatalOutcomeExempt(patientComp, fatalOutcome);
             var patientMissed = fatalOutcomeExempt
                 ? 0
                 : CountMissedInjuries(patient);
             var isVip = ent.Comp.VipPatient == patient || patientComp.IsVip;
 
-            if (isVip && !fatalOutcomeExempt && (patientMissed > 0 || permanentOutcome))
+            if (isVip && !fatalOutcomeExempt && (patientMissed > 0 || fatalOutcome))
                 vipPenalty += ent.Comp.VipMissedInjuryPenalty;
 
             if (!fatalOutcomeExempt)
@@ -1148,68 +1086,40 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
 
     private bool HasFatalOutcome(EntityUid patient)
     {
-        return _mobState.IsDead(patient) || HasPermanentFatalOutcome(patient);
+        return _mobState.IsDead(patient) || HasComp<RottingComponent>(patient);
     }
 
-    private bool HasPermanentFatalOutcome(EntityUid patient)
+    private bool TryApplyImmediateDeathPenalty(Entity<HospitalPatientComponent> patient, bool updateUi = true)
     {
-        return HasComp<RottingComponent>(patient) || HasComp<UnrevivableComponent>(patient);
-    }
+        if (patient.Comp.DeathPenaltyApplied)
+            return HasFatalOutcome(patient.Owner);
 
-    private bool TryApplyPermanentDeathPenalty(EntityUid patient)
-    {
-        if (!TryComp<HospitalPatientComponent>(patient, out var hospitalPatient))
+        var fatalOutcome = HasFatalOutcome(patient.Owner);
+        if (!fatalOutcome)
+        {
+            patient.Comp.ArrivedWithFatalOutcome = false;
             return false;
+        }
 
-        return TryApplyPermanentDeathPenalty((patient, hospitalPatient));
-    }
+        if (IsArrivalFatalOutcomeExempt(patient.Comp, fatalOutcome))
+            return true;
 
-    private bool TryApplyPermanentDeathPenalty(Entity<HospitalPatientComponent> patient, bool updateUi = true)
-    {
         var computerUid = patient.Comp.SourceComputer;
         if (Deleted(computerUid) ||
             !TryComp<HospitalEmergencyComputerComponent>(computerUid, out var computer) ||
             !computer.Patients.Contains(patient.Owner))
         {
-            UpdateFatalOutcomeExemption(patient);
-            return HasPermanentFatalOutcome(patient.Owner);
+            return true;
         }
 
-        return TryApplyPermanentDeathPenalty(patient, (computerUid, computer), updateUi);
-    }
-
-    private bool TryApplyPermanentDeathPenalty(
-        Entity<HospitalPatientComponent> patient,
-        Entity<HospitalEmergencyComputerComponent> computer,
-        bool updateUi = true)
-    {
-        if (patient.Comp.DeathPenaltyApplied)
-            return HasPermanentFatalOutcome(patient.Owner);
-
-        var fatalOutcome = UpdateFatalOutcomeExemption(patient);
-        if (!HasPermanentFatalOutcome(patient.Owner))
-            return false;
-
-        if (IsArrivalFatalOutcomeExempt(patient.Comp, fatalOutcome))
-            return true;
-
         patient.Comp.DeathPenaltyApplied = true;
-        computer.Comp.LastPermanentDeathPenalty += computer.Comp.PermanentlyDeceasedPenalty;
-        computer.Comp.NextUiRefreshAt = _timing.CurTime;
+        computer.LastPermanentDeathPenalty += computer.PermanentlyDeceasedPenalty;
+        computer.NextUiRefreshAt = _timing.CurTime;
 
         if (updateUi)
-            UpdateUi(computer);
+            UpdateUi((computerUid, computer));
 
         return true;
-    }
-
-    private bool UpdateFatalOutcomeExemption(Entity<HospitalPatientComponent> patient)
-    {
-        var fatalOutcome = HasFatalOutcome(patient.Owner);
-        if (!fatalOutcome)
-            patient.Comp.ArrivedWithFatalOutcome = false;
-
-        return fatalOutcome;
     }
 
     private static bool IsArrivalFatalOutcomeExempt(HospitalPatientComponent patient, bool fatalOutcome)
@@ -1260,7 +1170,7 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
 
             if (TryComp<BodyPartWoundComponent>(part.Id, out var bodyPartWounds))
             {
-                var wounds = _woundLedger.CountUntreatedWounds(bodyPartWounds);
+                var wounds = _woundLedger.GetEntries(bodyPartWounds).Count;
                 missed += wounds;
                 if (stopAtFirst && wounds > 0)
                     return missed;
@@ -1387,7 +1297,6 @@ public sealed partial class HospitalEmergencySystem : EntitySystem
             remaining,
             hasLandingZone,
             comp.Status == HospitalEmergencyStatus.AwaitingApproval && hasLandingZone,
-            comp.Status == HospitalEmergencyStatus.AwaitingApproval,
             comp.Status == HospitalEmergencyStatus.Treating && activePatients > 0,
             comp.Status is HospitalEmergencyStatus.ManualUnloading or HospitalEmergencyStatus.PickupBoarding);
 

@@ -59569,13 +59569,6 @@ entities:
     - type: Transform
       pos: 50.5,-111.5
       parent: 1
-- proto: AU14AnalyzerMachineWeYu
-  entities:
-  - uid: 354487
-    components:
-    - type: Transform
-      pos: 71.5,-145.5
-      parent: 1
 - proto: AU14BeltHolsterPistolBlack
   entities:
   - uid: 344167
@@ -257191,7 +257184,7 @@ entities:
       containers:
         board: !type:Container
           ents: []
-- proto: ComputerObjectivesWeYu
+- proto: ComputerObjectivesScientist
   entities:
   - uid: 171
     components:
@@ -308564,7 +308557,7 @@ entities:
     - type: Transform
       pos: 80.375,-150.5
       parent: 1
-- proto: AU14SpawnPointCivilianColonist
+- proto: ScenarioClfCivilianColonistSpawnMarker
   entities:
   - uid: 113
     components:
@@ -308971,7 +308964,7 @@ entities:
     - type: Transform
       pos: 42.5,85.5
       parent: 1
-- proto: safehousemarker
+- proto: scenarioclfsafehousespawnmarker
   entities:
   - uid: 957
     components:
@@ -308988,7 +308981,7 @@ entities:
     - type: Transform
       pos: -54.5,168.5
       parent: 1
-- proto: thirdpartyentityspawnmarker
+- proto: scenariothirdpartyentityspawnmarker
   entities:
   - uid: 889
     components:
@@ -309050,7 +309043,7 @@ entities:
     - type: Transform
       pos: -0.5,163.5
       parent: 1
-- proto: thirdpartyleaderspawnmarker
+- proto: scenariothirdpartyleaderspawnmarker
   entities:
   - uid: 893
     components:
@@ -309067,7 +309060,7 @@ entities:
     - type: Transform
       pos: 1.5,162.5
       parent: 1
-- proto: thirdpartymemberspawnmarker
+- proto: scenariothirdpartymemberspawnmarker
   entities:
   - uid: 841
     components:
@@ -309249,7 +309242,7 @@ entities:
     - type: Transform
       pos: 2.5,164.5
       parent: 1
-- proto: threatentityspawnmarker
+- proto: scenariothreatentityspawnmarker
   entities:
   - uid: 1021
     components:
@@ -309311,7 +309304,7 @@ entities:
     - type: Transform
       pos: -54.5,165.5
       parent: 1
-- proto: threatleaderspawnmarker
+- proto: scenariothreatleaderspawnmarker
   entities:
   - uid: 1046
     components:
@@ -309328,7 +309321,7 @@ entities:
     - type: Transform
       pos: -54.5,168.5
       parent: 1
-- proto: threatmemberspawnmarker
+- proto: scenariothreatmemberspawnmarker
   entities:
   - uid: 1013
     components:
@@ -309510,7 +309503,7 @@ entities:
     - type: Transform
       pos: -52.5,166.5
       parent: 1
-- proto: xenocfthreatentityspawnmarker
+- proto: scenarioxenocfthreatentityspawnmarker
   entities:
   - uid: 96
     components:
@@ -309527,14 +309520,14 @@ entities:
     - type: Transform
       pos: 81.5,131.5
       parent: 1
-- proto: xenocfthreatleaderspawnmarker
+- proto: scenarioxenocfthreatleaderspawnmarker
   entities:
   - uid: 840
     components:
     - type: Transform
       pos: 79.5,133.5
       parent: 1
-- proto: xenocfthreatmemberspawnmarker
+- proto: scenarioxenocfthreatmemberspawnmarker
   entities:
   - uid: 99
     components:

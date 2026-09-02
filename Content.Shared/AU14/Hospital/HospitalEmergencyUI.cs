@@ -25,7 +25,6 @@ public sealed class HospitalEmergencyComputerBuiState : BoundUserInterfaceState
     public int SecondsRemaining { get; }
     public bool HasLandingZone { get; }
     public bool CanApproveLanding { get; }
-    public bool CanSkipContract { get; }
     public bool CanRequestPickup { get; }
     public bool CanReleaseShuttle { get; }
 
@@ -44,7 +43,6 @@ public sealed class HospitalEmergencyComputerBuiState : BoundUserInterfaceState
         int secondsRemaining,
         bool hasLandingZone,
         bool canApproveLanding,
-        bool canSkipContract,
         bool canRequestPickup,
         bool canReleaseShuttle)
     {
@@ -62,7 +60,6 @@ public sealed class HospitalEmergencyComputerBuiState : BoundUserInterfaceState
         SecondsRemaining = secondsRemaining;
         HasLandingZone = hasLandingZone;
         CanApproveLanding = canApproveLanding;
-        CanSkipContract = canSkipContract;
         CanRequestPickup = canRequestPickup;
         CanReleaseShuttle = canReleaseShuttle;
     }
@@ -70,9 +67,6 @@ public sealed class HospitalEmergencyComputerBuiState : BoundUserInterfaceState
 
 [Serializable, NetSerializable]
 public sealed class HospitalEmergencyApproveLandingMsg : BoundUserInterfaceMessage;
-
-[Serializable, NetSerializable]
-public sealed class HospitalEmergencySkipContractMsg : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
 public sealed class HospitalEmergencyRequestPickupMsg : BoundUserInterfaceMessage;

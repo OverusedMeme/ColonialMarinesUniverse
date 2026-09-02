@@ -8,7 +8,7 @@ public sealed partial class RadioChannelPrototype : IPrototype
     /// <summary>
     /// Human-readable name for the channel.
     /// </summary>
-    [DataField]
+    [DataField("name")]
     public LocId Name { get; private set; } = string.Empty;
 
     [ViewVariables(VVAccess.ReadOnly)]
@@ -20,10 +20,10 @@ public sealed partial class RadioChannelPrototype : IPrototype
     [DataField("keycode")]
     public char KeyCode { get; private set; } = '\0';
 
-    [DataField]
+    [DataField("frequency")]
     public int Frequency { get; private set; } = 0;
 
-    [DataField]
+    [DataField("color")]
     public Color Color { get; private set; } = Color.Lime;
 
     [IdDataField, ViewVariables]
@@ -33,8 +33,8 @@ public sealed partial class RadioChannelPrototype : IPrototype
     /// If channel is long range it doesn't require telecommunication server
     /// and messages can be sent across different stations
     /// </summary>
-    [DataField, ViewVariables]
-    public bool LongRange;
+    [DataField("longRange"), ViewVariables]
+    public bool LongRange = false;
 
     [DataField]
     public bool Tower;
@@ -46,7 +46,7 @@ public sealed partial class RadioChannelPrototype : IPrototype
     [DataField]
     public string Faction = string.Empty;
 
-    // CMU14: gated combat nets need relay coverage on the map, ungated channels keep stock behavior
+    // AU14: gated combat nets need relay coverage on the map, ungated channels keep stock behavior
     [DataField]
     public bool AnchorGated;
 }

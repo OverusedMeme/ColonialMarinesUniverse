@@ -1,6 +1,4 @@
-using System.Linq;
 using Content.Server.Chat.Systems;
-using Content.Server.Camera;
 using Content.Server.Speech;
 using Content.Server.Speech.Components;
 using Content.Shared.Whitelist;
@@ -13,7 +11,6 @@ public sealed partial class SurveillanceCameraMicrophoneSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _xforms = default!;
     [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
-    [Dependency] private CameraSessionSystem _cameraSessions = default!;
     public override void Initialize()
     {
         base.Initialize();
@@ -30,14 +27,9 @@ public sealed partial class SurveillanceCameraMicrophoneSystem : EntitySystem
         var sourcePos = _xforms.GetWorldPosition(sourceXform, xformQuery);
 
         // This function ensures that chat popups appear on camera views that have connected microphones.
-        var cameras = EntityQueryEnumerator<SurveillanceCameraMicrophoneComponent,
-            ActiveListenerComponent,
-            SurveillanceCameraComponent,
-            TransformComponent>();
-        while (cameras.MoveNext(out var uid, out _, out _, out _, out var xform))
+        foreach (var (_, __, camera, xform) in EntityQuery<SurveillanceCameraMicrophoneComponent, ActiveListenerComponent, SurveillanceCameraComponent, TransformComponent>())
         {
-            var sessions = _cameraSessions.GetSessionsForCamera(uid);
-            if (sessions.Count == 0)
+            if (camera.ActiveViewers.Count == 0)
                 continue;
 
             // get range to camera. This way wispers will still appear as obfuscated if they are too far from the camera's microphone
@@ -48,11 +40,12 @@ public sealed partial class SurveillanceCameraMicrophoneSystem : EntitySystem
             if (range < 0 || range > ev.VoiceRange)
                 continue;
 
-            foreach (var session in sessions)
+            foreach (var viewer in camera.ActiveViewers)
             {
                 // if the player has not already received the chat message, send it to them but don't log it to the chat
                 // window. This is simply so that it appears in camera.
-                ev.Recipients.TryAdd(session.Viewer, new ICChatRecipientData(range, false, true));
+                if (TryComp(viewer, out ActorComponent? actor))
+                    ev.Recipients.TryAdd(actor.PlayerSession, new ICChatRecipientData(range, false, true));
             }
         }
     }
@@ -79,9 +72,7 @@ public sealed partial class SurveillanceCameraMicrophoneSystem : EntitySystem
 
         var ev = new SurveillanceCameraSpeechSendEvent(args.Source, args.Message);
 
-        foreach (var monitor in _cameraSessions.GetSessionsForCamera(uid)
-                     .Select(session => session.Receiver)
-                     .Distinct())
+        foreach (var monitor in camera.ActiveMonitors)
         {
             RaiseLocalEvent(monitor, ev);
         }
@@ -115,3 +106,4 @@ public sealed partial class SurveillanceCameraSpeechSendEvent : EntityEventArgs
         Message = message;
     }
 }
+

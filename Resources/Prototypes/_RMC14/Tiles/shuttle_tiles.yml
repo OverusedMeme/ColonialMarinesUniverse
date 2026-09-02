@@ -10,7 +10,6 @@
   id: CMShuttleTileInvisible
   name: invisible
   sprite: /Textures/_RMC14/Tiles/shuttle/invisible.png
-  transparent: true
 
 - type: tile
   parent: CMShuttleTileBase

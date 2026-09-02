@@ -1,4 +1,4 @@
-using Robust.Shared.GameStates;
+﻿using Robust.Shared.GameStates;
 
 namespace Content.Shared._RMC14.TacticalMap;
 
@@ -12,15 +12,12 @@ public sealed partial class TacticalMapLinesComponent : Component
     [DataField, AutoNetworkedField]
     public List<TacticalMapLine> XenoLines = new();
 
-    [DataField, AutoNetworkedField] // CMU14
+    [DataField, AutoNetworkedField]
     public List<TacticalMapLine> OpforLines = new();
 
-    [DataField, AutoNetworkedField] // CMU14
+    [DataField, AutoNetworkedField]
     public List<TacticalMapLine> GovforLines = new();
 
-    [DataField, AutoNetworkedField] // CMU14
+    [DataField, AutoNetworkedField]
     public List<TacticalMapLine> ClfLines = new();
-
-    [DataField, AutoNetworkedField] // CMU14
-    public List<TacticalMapLine> WeYuLines = new();
 }

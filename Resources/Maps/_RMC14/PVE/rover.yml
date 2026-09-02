@@ -10818,7 +10818,7 @@ entities:
       parent: 1
     - type: Fixtures
       fixtures: {}
-- proto: CMUTacticalMapTableLargeRotatedGovfor
+- proto: RMCTacticalMapTableLargeRotated
   entities:
   - uid: 381
     components:

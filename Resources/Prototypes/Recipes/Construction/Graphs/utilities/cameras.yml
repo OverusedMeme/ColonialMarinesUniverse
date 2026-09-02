@@ -27,6 +27,7 @@
           steps:
             - tool: Welding
               doAfter: 2
+
     - node: wired
       entity: SurveillanceCameraAssembly
       edges:
@@ -53,3 +54,4 @@
           steps:
             - tool: Welding
               doAfter: 2
+

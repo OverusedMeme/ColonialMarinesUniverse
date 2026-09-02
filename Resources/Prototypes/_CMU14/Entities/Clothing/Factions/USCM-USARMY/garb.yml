@@ -566,7 +566,6 @@
     state: icon
   - type: Item
     sprite: _AU14/Clothing/USCMArmorGarb/junglebracers.rsi
-  - type: Appearance
   - type: OuterClothingAccessory
     rsi:
       sprite: _AU14/Clothing/USCMArmorGarb/junglebracers.rsi
@@ -590,7 +589,6 @@
     state: icon
   - type: Item
     sprite: _AU14/Clothing/USCMArmorGarb/junglegroinplate.rsi
-  - type: Appearance
   - type: OuterClothingAccessory
     rsi:
       sprite: _AU14/Clothing/USCMArmorGarb/junglegroinplate.rsi
@@ -614,7 +612,6 @@
     state: icon
   - type: Item
     sprite: _AU14/Clothing/USCMArmorGarb/jungleneckguard.rsi
-  - type: Appearance
   - type: OuterClothingAccessory
     rsi:
       sprite: _AU14/Clothing/USCMArmorGarb/jungleneckguard.rsi
@@ -638,7 +635,6 @@
     state: icon
   - type: Item
     sprite: _AU14/Clothing/USCMArmorGarb/jungleshinguards.rsi
-  - type: Appearance
   - type: OuterClothingAccessory
     rsi:
       sprite: _AU14/Clothing/USCMArmorGarb/jungleshinguards.rsi
@@ -662,7 +658,6 @@
     state: icon
   - type: Item
     sprite: _AU14/Clothing/USCMArmorGarb/jungleshoulderpads.rsi
-  - type: Appearance
   - type: OuterClothingAccessory
     rsi:
       sprite: _AU14/Clothing/USCMArmorGarb/jungleshoulderpads.rsi
@@ -686,7 +681,6 @@
     state: icon
   - type: Item
     sprite: _AU14/Clothing/USCMArmorGarb/junglethighguards.rsi
-  - type: Appearance
   - type: OuterClothingAccessory
     rsi:
       sprite: _AU14/Clothing/USCMArmorGarb/junglethighguards.rsi

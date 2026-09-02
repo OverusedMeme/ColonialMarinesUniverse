@@ -31648,14 +31648,14 @@ entities:
     - type: Transform
       pos: 11.996129,-16.399878
       parent: 2
-- proto: CMUTacticalMapTableGovfor
+- proto: RMCTacticalMapTable
   entities:
   - uid: 2437
     components:
     - type: Transform
       pos: 56.5,-15.5
       parent: 2
-- proto: CMUTacticalMapTableLargeRotatedGovfor
+- proto: RMCTacticalMapTableLargeRotated
   entities:
   - uid: 1438
     components:

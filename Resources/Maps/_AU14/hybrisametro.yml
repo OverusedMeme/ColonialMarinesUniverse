@@ -212551,7 +212551,7 @@ entities:
     - type: Transform
       pos: -50.35855,-126.25476
       parent: 1
-- proto: AU14SpawnPointCivilianColonist
+- proto: ScenarioClfCivilianColonistSpawnMarker
   entities:
   - uid: 215
     components:
@@ -212653,14 +212653,14 @@ entities:
     - type: Transform
       pos: -90.5,-14.5
       parent: 1
-- proto: safehousemarker
+- proto: scenarioclfsafehousespawnmarker
   entities:
   - uid: 271
     components:
     - type: Transform
       pos: -102.5,-14.5
       parent: 1
-- proto: thirdpartyentityspawnmarker
+- proto: scenariothirdpartyentityspawnmarker
   entities:
   - uid: 24424
     components:
@@ -212672,7 +212672,7 @@ entities:
     - type: Transform
       pos: -86.5,-4.5
       parent: 1
-- proto: thirdpartyleaderspawnmarker
+- proto: scenariothirdpartyleaderspawnmarker
   entities:
   - uid: 24426
     components:
@@ -212709,7 +212709,7 @@ entities:
     - type: Transform
       pos: -81.5,-4.5
       parent: 1
-- proto: thirdpartymemberspawnmarker
+- proto: scenariothirdpartymemberspawnmarker
   entities:
   - uid: 24433
     components:

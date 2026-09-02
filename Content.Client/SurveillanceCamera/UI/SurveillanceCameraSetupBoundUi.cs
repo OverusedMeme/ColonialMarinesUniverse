@@ -50,22 +50,13 @@ public sealed class SurveillanceCameraSetupBoundUi : BoundUserInterface
     {
         base.UpdateState(state);
 
-        if (_window == null)
+        if (_window == null || state is not SurveillanceCameraSetupBoundUiState cast)
         {
             return;
         }
 
-        switch (state)
-        {
-            case SurveillanceCameraSetupBoundUiState frequencyState:
-                _window.UpdateState(frequencyState.Name, frequencyState.NameDisabled, frequencyState.NetworkDisabled);
-                _window.LoadAvailableNetworks(frequencyState.Network, frequencyState.Networks);
-                break;
-            case SurveillanceCameraLogicalNetworkSetupBoundUiState networkState:
-                _window.UpdateState(networkState.Name, networkState.NameDisabled, networkState.NetworkDisabled);
-                _window.LoadAvailableCameraNetworks(networkState.Network, networkState.Networks);
-                break;
-        }
+        _window.UpdateState(cast.Name, cast.NameDisabled, cast.NetworkDisabled);
+        _window.LoadAvailableNetworks(cast.Network, cast.Networks);
     }
 
     protected override void Dispose(bool disposing)

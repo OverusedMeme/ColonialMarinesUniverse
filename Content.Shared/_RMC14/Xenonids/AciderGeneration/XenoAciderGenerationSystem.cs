@@ -27,7 +27,7 @@ public sealed partial class XenoAciderGenerationSystem : EntitySystem
         var startGenerating = false;
         foreach (var hit in args.HitEntities)
         {
-            if (!_xeno.CanGainRewardsFromTarget(xeno, hit)) // CMU14: no rewards from vehicles
+            if (!_xeno.CanAbilityAttackTarget(xeno, hit))
                 continue;
 
             if (HasComp<RMCTrainingDummyComponent>(hit))

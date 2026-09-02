@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Content.Shared._CMU14.Dropship.AttachmentPoint;
 using Content.Shared._RMC14.Dropship;
 using Content.Shared._RMC14.Dropship.AttachmentPoint;
 using Content.Shared._RMC14.Dropship.ElectronicSystem;
@@ -655,8 +654,7 @@ public sealed partial class PowerLoaderSystem : EntitySystem
         }
 
         if (!TryComp(used, out PowerLoaderAttachableComponent? attachableComponent) ||
-            !_tag.HasAnyTag(target, attachableComponent.AttachableTypes) ||
-            !IsAllowedSpecializedAttachment(target, used))
+            !_tag.HasAnyTag(target, attachableComponent.AttachableTypes))
         {
             return;
         }
@@ -672,27 +670,6 @@ public sealed partial class PowerLoaderSystem : EntitySystem
         };
         if (_doAfter.TryStartDoAfter(doAfter) && TryComp<PowerLoaderComponent>(args.User, out var loader))
             loader.DoAfter = ev.DoAfter;
-    }
-
-    private bool IsAllowedSpecializedAttachment(EntityUid point, EntityUid attachment)
-    {
-        var prototype = MetaData(attachment).EntityPrototype?.ID;
-        if (prototype == null)
-            return false;
-
-        if (TryComp(point, out GunshipHardpointAttachmentPointComponent? hardpoint) &&
-            !hardpoint.AllowedAttachments.Contains(prototype))
-        {
-            return false;
-        }
-
-        if (TryComp(point, out GunshipUtilityAttachmentPointComponent? utility) &&
-            !utility.AllowedAttachments.Contains(prototype))
-        {
-            return false;
-        }
-
-        return true;
     }
 
     private void OnActivePilotPreventCollide(Entity<ActivePowerLoaderPilotComponent> ent, ref PreventCollideEvent args)

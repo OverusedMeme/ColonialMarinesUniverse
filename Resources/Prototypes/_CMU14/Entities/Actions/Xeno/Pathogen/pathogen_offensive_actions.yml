@@ -708,11 +708,7 @@
       sprite: _CMU14/Actions/actions_pathogen.rsi
       state: plant_sac
     useDelay: 10
-  - type: TargetAction
-    range: 5
-    checkCanAccess: false
-    deselectOnMiss: false
-  - type: WorldTargetAction
+  - type: InstantAction
     event: !type:CMUXenoSporeSacActionEvent
  
 - type: entity

@@ -11,7 +11,4 @@ public sealed partial class XenoNestComponent : Component
 
     [DataField, AutoNetworkedField]
     public EntityUid? Nested;
-
-    [DataField, AutoNetworkedField]
-    public TimeSpan UnnestDelay = TimeSpan.FromSeconds(3);
 }

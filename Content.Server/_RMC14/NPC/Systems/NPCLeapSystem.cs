@@ -1,4 +1,3 @@
-using System.Numerics; // CMU14
 using Content.Server._RMC14.NPC.Components;
 using Content.Server.DoAfter;
 using Content.Server.Interaction;
@@ -131,14 +130,7 @@ public sealed partial class NPCLeapSystem : EntitySystem
                 var worldPos = _transform.GetMoverCoordinates(uid);
                 var targetPos = _transform.GetMoverCoordinates(comp.Target);
 
-                var offset = targetPos.Position - worldPos.Position;
-                if (offset == Vector2.Zero) // CMU14: Normalized() of a zero vector is NaN and crashes the leap
-                {
-                    comp.Status = LeapStatus.Unspecified;
-                    continue;
-                }
-
-                var addedDis = offset.Normalized() * comp.LeapDistance;
+                var addedDis = (targetPos.Position - worldPos.Position).Normalized() * comp.LeapDistance;
 
                 var destination = worldPos.WithPosition(worldPos.Position + addedDis);
 

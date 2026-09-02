@@ -4,7 +4,6 @@ using Content.Server.Polymorph.Components;
 using Content.Server.Polymorph.Systems;
 using Content.Server.Radio.Components;
 using Content.Shared._CMU14.Threats.Mobs.Abomination;
-using Content.Server._CMU14.Weapons.Ranged;
 using Content.Shared._RMC14.Marines.Skills;
 using Content.Shared._RMC14.Weapons.Ranged.IFF;
 using Content.Shared._RMC14.Xenonids.Parasite;
@@ -61,7 +60,6 @@ public sealed partial class AbominationMimicSystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private NpcFactionSystem _faction = default!;
     [Dependency] private GunIFFSystem _gunIff = default!;
-    [Dependency] private CMUHostileIFFSystem _hostileIFF = default!;
     [Dependency] private SharedHumanoidAppearanceSystem _humanoid = default!;
     [Dependency] private SharedJitteringSystem _jitter = default!;
     [Dependency] private MetaDataSystem _metaData = default!;
@@ -74,8 +72,6 @@ public sealed partial class AbominationMimicSystem : EntitySystem
     [Dependency] private SharedUserInterfaceSystem _ui = default!;
     public static readonly ProtoId<PolymorphPrototype> DisguisePolymorph = "AbominationMimicDisguise";
     public static readonly EntProtoId RevertAction = "ActionAbominationMimicRevert";
-    public static readonly EntProtoId DrawVenomAction = "ActionAbominationMimicDrawVenom";
-    public static readonly EntProtoId VenomSyringe = "AU14AbominationVenomSyringe";
     public static readonly ProtoId<EmotePrototype> ScreamEmote = "Scream";
     public const string AbominationRadioChannel = "Abomination";
 
@@ -83,7 +79,6 @@ public sealed partial class AbominationMimicSystem : EntitySystem
     {
         SubscribeLocalEvent<AbominationMimicComponent, AbominationMimicTransformActionEvent>(OnTransformAction);
         SubscribeLocalEvent<AbominationMimicTransformedComponent, AbominationMimicRevertActionEvent>(OnRevertAction);
-        SubscribeLocalEvent<AbominationMimicTransformedComponent, AbominationMimicDrawVenomActionEvent>(OnDrawVenom);
         SubscribeLocalEvent<AbominationMimicTransformedComponent, MobStateChangedEvent>(OnDisguisedMobStateChanged);
 
         // Last-ditch revert if the disguise is being deleted/gibbed before
@@ -268,7 +263,6 @@ public sealed partial class AbominationMimicSystem : EntitySystem
         HealToFull(disguisedUid);
 
         _actions.AddAction(disguisedUid, RevertAction);
-        _actions.AddAction(disguisedUid, DrawVenomAction);
 
         return disguisedUid;
     }
@@ -287,17 +281,6 @@ public sealed partial class AbominationMimicSystem : EntitySystem
 
         args.Handled = true;
         BeginRevert(ent.Owner);
-    }
-
-    private void OnDrawVenom(Entity<AbominationMimicTransformedComponent> ent,
-        ref AbominationMimicDrawVenomActionEvent args)
-    {
-        if (args.Handled)
-            return;
-
-        args.Handled = true;
-        Spawn(VenomSyringe, Transform(ent).Coordinates);
-        _popup.PopupClient(Loc.GetString("abomination-mimic-draw-venom"), ent, ent);
     }
 
     private void OnDisguisedMobStateChanged(Entity<AbominationMimicTransformedComponent> ent,
@@ -437,7 +420,7 @@ public sealed partial class AbominationMimicSystem : EntitySystem
 
     private void ApplyIffFactions(EntityUid disguised, IEnumerable<string> iffFactions)
     {
-        _hostileIFF.StripIFF(disguised);
+        _gunIff.ClearUserFactions(disguised);
         foreach (string faction in iffFactions)
         {
             _gunIff.AddUserFaction(disguised, faction);

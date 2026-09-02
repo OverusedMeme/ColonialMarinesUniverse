@@ -920,10 +920,9 @@ public abstract partial class SharedMeleeWeaponSystem : EntitySystem
             _meleeSound.PlayHitSound(target, user, GetHighestDamageSound(appliedDamage, _protoManager), hitEvent.HitSoundOverride, component);
         }
 
-        if (appliedDamage.GetTotal() > FixedPoint2.Zero &&
-            TryComp(targets[0], out TransformComponent? targetXform)) // CMU14: on-hit effects can delete the target mid-swing
+        if (appliedDamage.GetTotal() > FixedPoint2.Zero)
         {
-            DoDamageEffect(targets, user, targetXform);
+            DoDamageEffect(targets, user, Transform(targets[0]));
         }
 
         return true;

@@ -5,7 +5,6 @@ using Content.Shared.Doors.Components;
 using Content.Shared.Shuttles.Systems;
 using JetBrains.Annotations;
 using Robust.Client.UserInterface;
-using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Timing;
 
 namespace Content.Client._RMC14.Dropship;
@@ -79,6 +78,13 @@ public sealed partial class DropshipNavigationBui : BoundUserInterface
                 return;
             }
 
+            if (_tacticalHoverActive)
+            {
+                SendPredictedMessage(new DropshipNavigationTacticalHoverCancelMsg());
+                SetCancelDisabled(true);
+                return;
+            }
+
             SetLaunchDisabled(true);
             SetCancelDisabled(true);
             _selected = null;
@@ -123,17 +129,17 @@ public sealed partial class DropshipNavigationBui : BoundUserInterface
             return;
 
         _tacticalLandActive = false;
-        _tacticalHoverActive = destinations.TacticalHoverActive;
+        _tacticalHoverActive = destinations.CanCancelTacticalHover;
         _window.LaunchButton.Text = "Launch";
-        _window.CancelButton.Text = "Cancel";
+        _window.CancelButton.Text = _tacticalHoverActive ? "Return Now" : "Cancel";
 
         SetFlightHeader("Flight Controls");
 
         _window.DestinationsContainer.Visible = true;
         _window.ProgressBarContainer.Visible = false;
-        _window.CancelButton.Visible = !_tacticalHoverActive;
+        _window.CancelButton.Visible = true;
         _window.LaunchButton.Visible = true;
-        _window.CancelButton.Button.Disabled = true;
+        _window.CancelButton.Button.Disabled = !_tacticalHoverActive;
         _window.LaunchButton.Button.Disabled = true;
 
         _window.DestinationsContainer.DisposeAllChildren();
@@ -143,7 +149,7 @@ public sealed partial class DropshipNavigationBui : BoundUserInterface
             var button = new DropshipButton();
 
             button.Text = name;
-            button.Disabled = disabled;
+            button.Disabled = _tacticalHoverActive || disabled;
             button.BorderColor = Color.Transparent;
             button.BorderThickness = new Thickness(0);
             button.Button.ToggleMode = false;
@@ -164,7 +170,7 @@ public sealed partial class DropshipNavigationBui : BoundUserInterface
         {
             var hoverStatus = new DropshipButton
             {
-                Text = Loc.GetString("cmu-tactical-land-hover-active"),
+                Text = "Tactical hover active - return now to cancel",
                 Disabled = true,
                 BorderColor = Color.FromHex("#4E6B8E"),
                 BorderThickness = new Thickness(1),
@@ -196,7 +202,7 @@ public sealed partial class DropshipNavigationBui : BoundUserInterface
         {
             var tacticalButton = new DropshipButton
             {
-                Text = Loc.GetString("cmu-tactical-land-button"),
+                Text = "Tactical Land",
                 Disabled = false,
                 BorderColor = Color.FromHex("#2A6D2A"),
                 BorderThickness = new Thickness(1),
@@ -234,9 +240,7 @@ public sealed partial class DropshipNavigationBui : BoundUserInterface
         _tacticalLandActive = true;
         _tacticalHoverActive = false;
 
-        SetFlightHeader(Loc.GetString(tactical.TacticalHover
-            ? "cmu-tactical-land-header-hover"
-            : "cmu-tactical-land-header-landing"));
+        SetFlightHeader(tactical.TacticalHover ? "Tactical Hover" : "Tactical Landing");
 
         _window.DestinationsContainer.Visible = true;
         _window.ProgressBarContainer.Visible = false;
@@ -250,9 +254,9 @@ public sealed partial class DropshipNavigationBui : BoundUserInterface
         {
             Text = tactical.ClearForLanding
                 ? tactical.TacticalHover
-                    ? Loc.GetString("cmu-tactical-land-hover-point-clear")
-                    : Loc.GetString("cmu-tactical-land-point-clear")
-                : Loc.GetString("cmu-tactical-land-point-obstructed"),
+                    ? "WASD to position - hover point clear"
+                    : "WASD to position - landing point clear"
+                : "WASD to position - red = obstructed",
             Disabled = true,
             BorderColor = tactical.ClearForLanding ? Color.FromHex("#2A6D2A") : Color.FromHex("#7A2A2A"),
             BorderThickness = new Thickness(1),
@@ -261,7 +265,7 @@ public sealed partial class DropshipNavigationBui : BoundUserInterface
 
         var upButton = new DropshipButton
         {
-            Text = Loc.GetString("cmu-tactical-land-ascend-level"),
+            Text = "Ascend Z-Level",
             Disabled = !tactical.CanMoveUp,
             BorderColor = Color.FromHex("#4E6B8E"),
             BorderThickness = new Thickness(1),
@@ -272,7 +276,7 @@ public sealed partial class DropshipNavigationBui : BoundUserInterface
 
         var downButton = new DropshipButton
         {
-            Text = Loc.GetString("cmu-tactical-land-descend-level"),
+            Text = "Descend Z-Level",
             Disabled = !tactical.CanMoveDown,
             BorderColor = Color.FromHex("#4E6B8E"),
             BorderThickness = new Thickness(1),
@@ -281,49 +285,7 @@ public sealed partial class DropshipNavigationBui : BoundUserInterface
         downButton.Button.OnPressed += _ => SendPredictedMessage(new DropshipNavigationTacticalLandMoveDownMsg());
         _window.DestinationsContainer.AddChild(downButton);
 
-        var rotationContainer = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Horizontal,
-            HorizontalExpand = true,
-        };
-
-        var rotateCounterClockwise = new DropshipButton
-        {
-            Text = Loc.GetString("cmu-tactical-land-rotate-left"),
-            BorderColor = Color.FromHex("#4E6B8E"),
-            BorderThickness = new Thickness(1),
-            HorizontalExpand = true,
-        };
-        rotateCounterClockwise.Button.ToggleMode = false;
-        rotateCounterClockwise.Button.OnPressed += _ => SendPredictedMessage(new DropshipNavigationTacticalLandRotateMsg(false));
-        rotationContainer.AddChild(rotateCounterClockwise);
-
-        var heading = new DropshipButton
-        {
-            Text = Loc.GetString("cmu-tactical-land-heading", ("degrees", tactical.RotationDegrees)),
-            Disabled = true,
-            BorderColor = Color.FromHex("#4E6B8E"),
-            BorderThickness = new Thickness(1),
-            HorizontalExpand = true,
-        };
-        rotationContainer.AddChild(heading);
-
-        var rotateClockwise = new DropshipButton
-        {
-            Text = Loc.GetString("cmu-tactical-land-rotate-right"),
-            BorderColor = Color.FromHex("#4E6B8E"),
-            BorderThickness = new Thickness(1),
-            HorizontalExpand = true,
-        };
-        rotateClockwise.Button.ToggleMode = false;
-        rotateClockwise.Button.OnPressed += _ => SendPredictedMessage(new DropshipNavigationTacticalLandRotateMsg(true));
-        rotationContainer.AddChild(rotateClockwise);
-
-        _window.DestinationsContainer.AddChild(rotationContainer);
-
-        _window.LaunchButton.Text = Loc.GetString(tactical.TacticalHover
-            ? "cmu-tactical-land-confirm-hover"
-            : "cmu-tactical-land-confirm-land");
+        _window.LaunchButton.Text = tactical.TacticalHover ? "Hover" : "Land";
         _window.LaunchButton.Button.Disabled = !tactical.ClearForLanding;
         _window.CancelButton.Text = "Cancel";
         _window.CancelButton.Button.Disabled = false;
@@ -338,14 +300,14 @@ public sealed partial class DropshipNavigationBui : BoundUserInterface
             return;
 
         _tacticalLandActive = false;
-        _tacticalHoverActive = false;
+        _tacticalHoverActive = travelling.CanCancelTacticalHover;
         _window.DestinationsContainer.Visible = false;
         _window.ProgressBarContainer.Visible = true;
         _window.LaunchButton.Visible = false;
         _window.ProgressBar.Margin = new Thickness(0, 5, 0, 0);
 
-        _window.CancelButton.Text = "Cancel";
-        _window.CancelButton.Visible = !_tacticalHoverActive && travelling.Destination == travelling.DepartureLocation;
+        _window.CancelButton.Text = _tacticalHoverActive ? "Return Now" : "Cancel";
+        _window.CancelButton.Visible = _tacticalHoverActive || travelling.Destination == travelling.DepartureLocation;
         _window.CancelButton.Button.Disabled = false;
 
         var time = Math.Ceiling((travelling.Time.End - _timing.CurTime).TotalSeconds);
@@ -383,6 +345,9 @@ public sealed partial class DropshipNavigationBui : BoundUserInterface
             default:
                 return;
         }
+
+        if (_tacticalHoverActive)
+            SetCancelDisabled(false);
 
         RefreshDoorLockStatus(travelling.DoorLockStatus);
         SetRemoteControl(travelling.RemoteControlStatus);

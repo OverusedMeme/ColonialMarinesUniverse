@@ -159,32 +159,23 @@ public abstract partial class SharedStationSpawningSystem : EntitySystem
                 if (entProtos == null || entProtos.Count == 0)
                     continue;
 
-                // CMU14 Begin
-                EntityUid? slotEnt = null;
-                StorageComponent? storage = null;
-                if (inventoryComp != null)
+                if (inventoryComp != null &&
+                    InventorySystem.TryGetSlotEntity(entity, slotName, out var slotEnt, inventoryComponent: inventoryComp) &&
+                    _storageQuery.TryComp(slotEnt, out var storage))
                 {
-                    InventorySystem.TryGetSlotEntity(entity, slotName, out slotEnt, inventoryComponent: inventoryComp);
 
-                    if (slotEnt != null)
-                        _storageQuery.TryComp(slotEnt.Value, out storage);
-                }
-
-                foreach (var entProto in entProtos)
-                {
-                    var spawnedEntity = Spawn(entProto, coords);
-                    if (slotEnt == null || storage == null)
-                        continue;
-
-                    if (TryComp(spawnedEntity, out ItemComponent? item))
+                    foreach (var entProto in entProtos)
                     {
-                        var ev = new CMStorageItemFillEvent((spawnedEntity, item), storage);
-                        RaiseLocalEvent(slotEnt.Value, ref ev);
-                    }
+                        var spawnedEntity = Spawn(entProto, coords);
+                        if (TryComp(spawnedEntity, out ItemComponent? item))
+                        {
+                            var ev = new CMStorageItemFillEvent((spawnedEntity, item), storage);
+                            RaiseLocalEvent(slotEnt.Value, ref ev);
+                        }
 
-                    _storage.Insert(slotEnt.Value, spawnedEntity, out _, storageComp: storage, playSound: false);
+                        _storage.Insert(slotEnt.Value, spawnedEntity, out _, storageComp: storage, playSound: false);
+                    }
                 }
-                // CMU14 End
             }
         }
 

@@ -1,4 +1,3 @@
-using Content.Shared._CMU14.Chemistry.Stimmaster;
 using Content.Shared._RMC14.Chemistry.ChemMaster;
 using Content.Shared._RMC14.UserInterface;
 using Robust.Client.Timing;
@@ -15,7 +14,6 @@ public sealed partial class RMCChemMasterSystem : SharedRMCChemMasterSystem
     {
         base.Initialize();
         SubscribeLocalEvent<RMCChemMasterComponent, AfterAutoHandleStateEvent>(OnState);
-        SubscribeLocalEvent<CMUStimmasterComponent, AfterAutoHandleStateEvent>(OnStimmasterState);
     }
 
     private void OnState(Entity<RMCChemMasterComponent> ent, ref AfterAutoHandleStateEvent args)
@@ -24,14 +22,6 @@ public sealed partial class RMCChemMasterSystem : SharedRMCChemMasterSystem
             return;
 
         RefreshUIs(ent);
-    }
-
-    private void OnStimmasterState(Entity<CMUStimmasterComponent> ent, ref AfterAutoHandleStateEvent args)
-    {
-        if (_timing.CurTick != _timing.LastRealTick)
-            return;
-
-        _rmcUI.RefreshUIs<RMCChemMasterBui>(ent.Owner);
     }
 
     protected override void OnEntInsertedIntoContainer(Entity<RMCChemMasterComponent> ent, ref EntInsertedIntoContainerMessage args)

@@ -18,9 +18,6 @@ public sealed partial class RMCEquipmentDeployerSystem : SharedRMCEquipmentDeplo
     private void OnHandleState(Entity<RMCEquipmentDeployerComponent> ent, ref AfterAutoHandleStateEvent args)
     {
         UpdateVisuals(ent);
-
-        var ev = new RMCEquipmentDeployerStateUpdatedEvent();
-        RaiseLocalEvent(ent, ev);
     }
 
     private void OnAppearanceChange(Entity<RMCEquipmentDeployerComponent> ent, ref AppearanceChangeEvent args)
@@ -45,8 +42,3 @@ public sealed partial class RMCEquipmentDeployerSystem : SharedRMCEquipmentDeplo
         _sprite.LayerSetVisible(deployerEntity, deployedEntity, ent.Comp.IsDeployed);
     }
 }
-
-/// <summary>
-/// Raised after an authoritative equipment deployer state is applied on the client.
-/// </summary>
-public sealed class RMCEquipmentDeployerStateUpdatedEvent : EntityEventArgs;

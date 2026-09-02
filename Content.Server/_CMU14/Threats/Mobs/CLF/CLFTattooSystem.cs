@@ -146,9 +146,22 @@ public sealed partial class CLFTattooSystem : EntitySystem
             return;
         }
 
-        // Always allow re-offering: the target's dialog window can outlive the offer
-        // invisibly (ghosting, disconnect), so a pending offer must never hard-block
-        // the gun. Overwriting is safe; the accept handler reads the current fields.
+        // Check if target already has a pending tattoo offer
+        if (TryComp<TattooPendingComponent>(target, out _))
+        {
+            if (HasComp<DialogComponent>(target))
+            {
+                _popup.PopupEntity(Loc.GetString("clf-tattoo-already-pending"), user, user);
+                args.Handled = true;
+
+                return;
+            }
+
+            // Stale pending component from a cancelled dialog, clean up
+            RemComp<TattooPendingComponent>(target);
+        }
+
+        // Add pending component to track the tattoo artist and gun
         var pending = EnsureComp<TattooPendingComponent>(target);
         pending.User = user;
         pending.TattooGun = uid;

@@ -98,9 +98,12 @@
     radius: 1.5
     energy: 1.6
     color: "#b89f25"
-  - type: CameraNetworkReceiver
-    networks: [SurveillanceCameraEngineering, SurveillanceCameraSecurity, SurveillanceCameraScience, SurveillanceCameraSupply, SurveillanceCameraCommand, SurveillanceCameraService, SurveillanceCameraMedical, SurveillanceCameraGeneral]
-    supportedSources: Standard
+  - type: DeviceNetwork
+    deviceNetId: Wired
+    receiveFrequencyId: SurveillanceCamera
+    transmitFrequencyId: SurveillanceCamera
+  - type: WiredNetworkConnection
+  - type: DeviceNetworkRequiresPower
   - type: SurveillanceCameraMonitor
   - type: ActivatableUI
     key: enum.SurveillanceCameraMonitorUiKey.Key
@@ -152,11 +155,13 @@
   - type: Construction
     graph: WallmountTelevision
     node: Television
+  - type: DeviceNetwork
+    deviceNetId: Wireless
+    receiveFrequencyId: SurveillanceCamera
+    transmitFrequencyId: SurveillanceCamera
   - type: WirelessNetworkConnection
     range: 200
-  - type: CameraNetworkReceiver
-    networks: [SurveillanceCameraEngineering, SurveillanceCameraSecurity, SurveillanceCameraScience, SurveillanceCameraSupply, SurveillanceCameraCommand, SurveillanceCameraService, SurveillanceCameraMedical, SurveillanceCameraGeneral]
-    supportedSources: Standard
+  - type: DeviceNetworkRequiresPower
   - type: Speech
   - type: SurveillanceCameraSpeaker
   - type: SurveillanceCameraMonitor

@@ -356,12 +356,6 @@ public sealed partial class MotionDetectorSystem : EntitySystem
         var detectors = EntityQueryEnumerator<MotionDetectorComponent>();
         while (detectors.MoveNext(out var uid, out var detector))
         {
-            if (detector.LastUser is { } staleUser && TerminatingOrDeleted(staleUser)) // CMU14
-            {
-                detector.LastUser = null;
-                Dirty(uid, detector);
-            }
-
             if (!detector.Enabled)
                 continue;
 

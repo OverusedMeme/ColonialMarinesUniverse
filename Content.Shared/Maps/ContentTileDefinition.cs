@@ -44,7 +44,7 @@ namespace Content.Shared.Maps
         public string BaseTurf { get; private set; } = string.Empty;
 
         [DataField]
-        public HashSet<ProtoId<ToolQualityPrototype>> DeconstructTools { get; set; } = [];
+        public PrototypeFlags<ToolQualityPrototype> DeconstructTools { get; set; } = new();
 
         /// <summary>
         /// Effective mass of this tile for grid impacts.

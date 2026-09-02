@@ -4,16 +4,14 @@
   - colonyfall
   name: Colony Fall
   showInVote: true
-  maxPlayers: 45
+  maxPlayers: 60
   description: Live in an offworld colony as it falls into chaos.
   burrowedLarvaEnabled: false
-  thirdPartyAutoSpawn: true
-  thirdPartyInterval: 2250
-  thirdPartyRatio: 0.25
-  maxThirdParties: 2
   supportedPlanets:
   - SharedPlanetPool
-# - AUPlanetLV624 # Green Hell # missing threat spawns, scenario fails
+  - AuPlanetChances
+  - AUPlanetSorokyne
+  - AUPlanetLV624 # Green Hell
   rules:
   - AuVoteRule
   - ColonyAntags
@@ -27,15 +25,14 @@
   description: Investigate a mysterious distress signal as government forces.
   requiresGovforVote: true
   supportedPlanets:
-# - CMUPlanetStableGarrisonRedux # Govfor can hunker-down in Garrison; can be rushed by threats
-# - AUPlanetShepherdsPride # lot of forests/chokes
-  - CMUPlanetHopesRetreat
-# - AUPlanetLV747 # Solaris Gulch
-# - AUPlanetLV759 # Hybrisa Metro # missing threat spawns, scenario fails
+  - SharedPlanetPool
+  - AUPlanetLV747 # Solaris Gulch
+  - AUPlanetLV759 # Hybrisa Metro
   - AUPlanetLV327 # Port Nereid
   - AUPlanetSorokyne
   - AUPlanetCorsatStation
   - AUPlanetTrijent
+  - AuPlanetFiorina
   - AuPlanetKutjevo
   - AuPlanetShivasSnowball
   - AuPlanetChances
@@ -53,7 +50,7 @@
   name: Insurgency
   showInVote: true
   description: Insurgency mode
-  minPlayers: 30
+  minPlayers: 35
   burrowedLarvaEnabled: false
   requiresGovforVote: true
   thirdPartyAutoSpawn: true
@@ -62,7 +59,10 @@
   maxThirdParties: 3
   supportedPlanets:
   - SharedPlanetPool
-# - AUPlanetLV624 # Green Hell # map lacks medical, dropships - govfor spawns outside base
+  - AUPlanetLV747 # Solaris Gulch
+  - AUPlanetSorokyne
+  - AuPlanetChances
+  - AUPlanetLV624 # Green Hell
   rules:
   - AuVoteRule
   - PlatoonSpawn
@@ -79,21 +79,18 @@
   name: Force on Force
   showInVote: true
   description: Two units face each other in combat.
-  minPlayers: 80
+  minPlayers: 500
   requiresOpforVote: true
   requiresGovforVote: true
-  thirdPartyAutoSpawn: true
-  thirdPartyInterval: 1800
-  thirdPartyRatio: 0.10
-  maxThirdParties: 4
   supportedPlanets:
-  - SharedPlanetPool # Only Maintained maps can process feedback (Shep doesn't have base)
-# - AUPlanetGixensCaverns
-# - AUPlanetFlight
-# - AUPlanetLV759 # Hybrisa Metro
-# - AUPlanetCorsatStation
-# - AUPlanetSorokyne
-# - AUPlanetTrijent
+  - SharedPlanetPool
+  - AUPlanetGixensCaverns
+  - AUPlanetFlight
+  - AUPlanetLV759
+  - AUPlanetCorsatStation
+  - AUPlanetSorokyne
+  - AUPlanetTrijent
+  - AUPlanetLV624 # Green Hell
   rules:
   - AuVoteRule
   - PlatoonSpawn
@@ -110,8 +107,6 @@
   description: Jailbreak mode
   rules:
   - AuVoteRule
-  supportedPlanets:
-  - AuPlanetFiorina
 
 - type: gamePreset
   id: Prometheus
@@ -132,5 +127,3 @@
   description: Criminal mode
   rules:
   - AuVoteRule
-  supportedPlanets:
-  - AuPlanetFiorina

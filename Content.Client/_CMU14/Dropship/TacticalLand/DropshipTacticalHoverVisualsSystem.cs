@@ -19,8 +19,7 @@ public sealed partial class DropshipTacticalHoverVisualsSystem : EntitySystem
             var scale = new Vector2(
                 Math.Max(1, shadow.Footprint.X),
                 Math.Max(1, shadow.Footprint.Y));
-            if (sprite.Scale != scale)
-                _sprite.SetScale((uid, sprite), scale);
+            _sprite.SetScale((uid, sprite), scale);
         }
     }
 }

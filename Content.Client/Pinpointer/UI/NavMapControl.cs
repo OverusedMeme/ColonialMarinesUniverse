@@ -39,7 +39,6 @@ public partial class NavMapControl : MapGridControl
 
     // Actions
     public event Action<NetEntity?>? TrackedEntitySelectedAction;
-    public event Action<NetEntity?>? TrackedEntityRightClickedAction;
     public event Action<DrawingHandleScreen>? PostWallDrawingAction;
 
     // Tracked data
@@ -66,10 +65,6 @@ public partial class NavMapControl : MapGridControl
     protected float FullWallInstep = 0.165f;
     protected float ThinWallThickness = 0.165f;
     protected float ThinDoorThickness = 0.30f;
-
-    // Clyde has a fixed primitive batch capacity. Large colony maps can exceed
-    // it when every wall segment is submitted in a single draw call.
-    private const int MaxPrimitiveVerticesPerDraw = 2048;
 
     // Local variables
     private float _updateTimer = 1.0f;
@@ -218,7 +213,33 @@ public partial class NavMapControl : MapGridControl
             if ((StartDragPosition - args.PointerLocation.Position).Length() > MinDragDistance)
                 return;
 
-            if (!TryFindClosestTrackedEntity(args.PointerLocation.Position, out var closestEntity))
+            // Get the clicked position
+            var offset = Offset + _physics.LocalCenter;
+            var localPosition = args.PointerLocation.Position - GlobalPixelPosition;
+
+            // Convert to a world position
+            var unscaledPosition = (localPosition - MidPointVector) / MinimapScale;
+            var worldPosition = Vector2.Transform(new Vector2(unscaledPosition.X, -unscaledPosition.Y) + offset, _transformSystem.GetWorldMatrix(_xform));
+
+            // Find closest tracked entity in range
+            var closestEntity = NetEntity.Invalid;
+            var closestDistance = float.PositiveInfinity;
+
+            foreach ((var currentEntity, var blip) in TrackedEntities)
+            {
+                if (!blip.Selectable)
+                    continue;
+
+                var currentDistance = (_transformSystem.ToMapCoordinates(blip.Coordinates).Position - worldPosition).Length();
+
+                if (closestDistance < currentDistance || currentDistance * MinimapScale > MaxSelectableDistance)
+                    continue;
+
+                closestEntity = currentEntity;
+                closestDistance = currentDistance;
+            }
+
+            if (closestDistance > MaxSelectableDistance || !closestEntity.IsValid())
                 return;
 
             TrackedEntitySelectedAction.Invoke(closestEntity);
@@ -226,26 +247,8 @@ public partial class NavMapControl : MapGridControl
 
         else if (args.Function == EngineKeyFunctions.UIRightClick)
         {
-            if (TrackedEntityRightClickedAction == null)
-            {
-                // Preserve the generic nav-map behavior for controls that do not
-                // opt into camera marker right-clicks.
-                TrackedEntitySelectedAction?.Invoke(null);
-                return;
-            }
-
-            if (TryFindClosestTrackedEntity(args.PointerLocation.Position, out var closestEntity))
-            {
-                TrackedEntityRightClickedAction.Invoke(closestEntity);
-                // Camera marker right-clicks are actions, not a request for the
-                // generic context menu. Consume the input after dispatching the
-                // selection so the monitor stays on the chosen camera.
-                args.Handle();
-            }
-            else
-            {
-                TrackedEntityRightClickedAction.Invoke(null);
-            }
+            // Clear current selection with right click
+            TrackedEntitySelectedAction?.Invoke(null);
         }
 
         else if (args.Function == ContentKeyFunctions.ExamineEntity)
@@ -253,39 +256,6 @@ public partial class NavMapControl : MapGridControl
             // Toggle beacon labels
             _beacons.Pressed = !_beacons.Pressed;
         }
-    }
-
-    private bool TryFindClosestTrackedEntity(Vector2 pointerPosition, out NetEntity closestEntity)
-    {
-        closestEntity = NetEntity.Invalid;
-
-        if (_xform == null || _physics == null || TrackedEntities.Count == 0)
-            return false;
-
-        var offset = Offset + _physics.LocalCenter;
-        var localPosition = pointerPosition - GlobalPixelPosition;
-        var unscaledPosition = (localPosition - MidPointVector) / MinimapScale;
-        var worldPosition = Vector2.Transform(
-            new Vector2(unscaledPosition.X, -unscaledPosition.Y) + offset,
-            _transformSystem.GetWorldMatrix(_xform));
-
-        var closestDistance = float.PositiveInfinity;
-        foreach ((var currentEntity, var blip) in TrackedEntities)
-        {
-            if (!blip.Selectable)
-                continue;
-
-            var currentDistance =
-                (_transformSystem.ToMapCoordinates(blip.Coordinates).Position - worldPosition).Length();
-
-            if (closestDistance < currentDistance || currentDistance * MinimapScale > MaxSelectableDistance)
-                continue;
-
-            closestEntity = currentEntity;
-            closestDistance = currentDistance;
-        }
-
-        return closestDistance <= MaxSelectableDistance && closestEntity.IsValid();
     }
 
     protected override void MouseMove(GUIMouseMoveEventArgs args)
@@ -369,7 +339,7 @@ public partial class NavMapControl : MapGridControl
         // Draw map lines
         if (TileLines.Any())
         {
-            var lines = new ValueList<Vector2>(Math.Min(TileLines.Count * 2, MaxPrimitiveVerticesPerDraw));
+            var lines = new ValueList<Vector2>(TileLines.Count * 2);
 
             foreach (var (o, t) in TileLines)
             {
@@ -378,18 +348,16 @@ public partial class NavMapControl : MapGridControl
 
                 lines.Add(origin);
                 lines.Add(terminus);
-
-                if (lines.Count >= MaxPrimitiveVerticesPerDraw)
-                    DrawLineBatch(handle, ref lines, wallsRGB);
             }
 
-            DrawLineBatch(handle, ref lines, wallsRGB);
+            if (lines.Count > 0)
+                handle.DrawPrimitives(DrawPrimitiveTopology.LineList, lines.Span, wallsRGB);
         }
 
         // Draw map rects
         if (TileRects.Any())
         {
-            var rects = new ValueList<Vector2>(Math.Min(TileRects.Count * 8, MaxPrimitiveVerticesPerDraw));
+            var rects = new ValueList<Vector2>(TileRects.Count * 8);
 
             foreach (var (lt, rb) in TileRects)
             {
@@ -407,12 +375,10 @@ public partial class NavMapControl : MapGridControl
                 rects.Add(leftBottom);
                 rects.Add(leftBottom);
                 rects.Add(leftTop);
-
-                if (rects.Count >= MaxPrimitiveVerticesPerDraw)
-                    DrawLineBatch(handle, ref rects, wallsRGB);
             }
 
-            DrawLineBatch(handle, ref rects, wallsRGB);
+            if (rects.Count > 0)
+                handle.DrawPrimitives(DrawPrimitiveTopology.LineList, rects.Span, wallsRGB);
         }
 
         // Invoke post wall drawing action
@@ -482,18 +448,6 @@ public partial class NavMapControl : MapGridControl
                 handle.DrawString(font, position - textDimensions / 2, beacon.Text, beacon.Color);
             }
         }
-    }
-
-    private static void DrawLineBatch(
-        DrawingHandleScreen handle,
-        ref ValueList<Vector2> vertices,
-        Color color)
-    {
-        if (vertices.Count == 0)
-            return;
-
-        handle.DrawPrimitives(DrawPrimitiveTopology.LineList, vertices.Span, color);
-        vertices.Clear();
     }
 
     protected override void FrameUpdate(FrameEventArgs args)

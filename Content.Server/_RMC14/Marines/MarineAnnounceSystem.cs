@@ -171,12 +171,11 @@ public sealed partial class MarineAnnounceSystem : SharedMarineAnnounceSystem
         string message,
         SoundSpecifier? sound = null,
         LocId? announcement = null,
-        string? faction = null,
-        string? ship = null) // CMU14: header name for the ares-map announcement
+        string? faction = null)
     {
-        base.AnnounceARESStaging(source, message, sound, announcement, faction, ship);
+        base.AnnounceARESStaging(source, message, sound, announcement, faction);
 
-        message = FormatARESStaging(announcement, message, ship);
+        message = FormatARESStaging(announcement, message);
 
         var filter = string.IsNullOrWhiteSpace(faction)
             ? BuildAllMarineAnnouncementFilter()

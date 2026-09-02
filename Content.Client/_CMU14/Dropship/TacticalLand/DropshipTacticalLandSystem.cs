@@ -1,5 +1,4 @@
 using System.Numerics;
-using Content.Client.Eye;
 using Content.Client.Movement.Systems;
 using Content.Shared._CMU14.Dropship.TacticalLand;
 using Content.Shared.Mobs.Components;
@@ -7,7 +6,6 @@ using Content.Shared.Movement.Components;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
-using Robust.Shared.Map;
 using Robust.Shared.Timing;
 
 namespace Content.Client._CMU14.Dropship.TacticalLand;
@@ -15,27 +13,23 @@ namespace Content.Client._CMU14.Dropship.TacticalLand;
 public sealed partial class DropshipTacticalLandSystem : SharedDropshipTacticalLandSystem
 {
     [Dependency] private IOverlayManager _overlay = default!;
-    [Dependency] private IEyeManager _eyeManager = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private ContentEyeSystem _contentEye = default!;
 
     private static readonly Vector2 TacticalLandZoom = new(2.25f, 2.25f);
-    private static readonly TimeSpan MobVisibilityRefreshInterval = TimeSpan.FromMilliseconds(100);
 
     private bool _mobsHidden;
     private readonly HashSet<EntityUid> _hiddenMobs = new();
-    private readonly HashSet<Entity<MobStateComponent>> _viewportMobs = new();
-    private TimeSpan _nextMobVisibilityRefresh;
 
     private bool _zoomApplied;
     private EntityUid? _zoomedEntity;
+    private Vector2 _originalZoom = Vector2.One;
 
     public override void Initialize()
     {
         base.Initialize();
-        UpdatesAfter.Add(typeof(EyeLerpingSystem));
         _overlay.AddOverlay(new DropshipTacticalLandOverlay(EntityManager, _player));
     }
 
@@ -49,19 +43,15 @@ public sealed partial class DropshipTacticalLandSystem : SharedDropshipTacticalL
             RestoreZoom();
     }
 
-    public override void FrameUpdate(float frameTime)
+    public override void Update(float frameTime)
     {
-        base.FrameUpdate(frameTime);
+        base.Update(frameTime);
 
         var inEye = IsLocalPlayerInPilotEye();
 
         if (inEye)
         {
-            if (_timing.CurTime >= _nextMobVisibilityRefresh)
-            {
-                _nextMobVisibilityRefresh = _timing.CurTime + MobVisibilityRefreshInterval;
-                HideMobsTick();
-            }
+            HideMobsTick();
             _mobsHidden = true;
             ApplyZoom();
         }
@@ -79,28 +69,41 @@ public sealed partial class DropshipTacticalLandSystem : SharedDropshipTacticalL
 
     private void ApplyZoom()
     {
+        // RequestZoom raises a predictive event; valid only during the first-time prediction pass.
+        if (!_timing.IsFirstTimePredicted)
+            return;
+
         if (_player.LocalEntity is not { } local)
+            return;
+
+        if (!TryComp(local, out ContentEyeComponent? content))
+            return;
+
+        if (_zoomApplied && _zoomedEntity == local)
             return;
 
         if (_zoomApplied && _zoomedEntity is { } prev && prev != local)
             RestoreZoom();
 
+        _originalZoom = content.TargetZoom;
         _zoomedEntity = local;
-        _eyeManager.CurrentEye.Zoom = TacticalLandZoom;
+        _contentEye.RequestZoom(local, TacticalLandZoom, ignoreLimit: true, scalePvs: true, content);
         _zoomApplied = true;
     }
 
     private void RestoreZoom()
     {
-        if (_zoomedEntity is { } prev &&
-            !TerminatingOrDeleted(prev) &&
-            TryComp(prev, out ContentEyeComponent? content))
+        if (!_timing.IsFirstTimePredicted)
+            return;
+
+        if (_zoomedEntity is { } prev && !TerminatingOrDeleted(prev) && TryComp(prev, out ContentEyeComponent? content))
         {
-            _eyeManager.CurrentEye.Zoom = content.TargetZoom;
+            _contentEye.RequestZoom(prev, _originalZoom, ignoreLimit: true, scalePvs: true, content);
         }
 
         _zoomApplied = false;
         _zoomedEntity = null;
+        _originalZoom = Vector2.One;
     }
 
     private bool IsLocalPlayerInPilotEye()
@@ -116,17 +119,9 @@ public sealed partial class DropshipTacticalLandSystem : SharedDropshipTacticalL
 
     private void HideMobsTick()
     {
-        var eye = _eyeManager.CurrentEye;
-        if (eye.Position.MapId == MapId.Nullspace)
-            return;
-
-        _viewportMobs.Clear();
-        _lookup.GetEntitiesIntersecting(eye.Position.MapId, _eyeManager.GetWorldViewbounds(), _viewportMobs);
-        foreach (var (uid, _) in _viewportMobs)
+        var query = EntityQueryEnumerator<MobStateComponent, SpriteComponent>();
+        while (query.MoveNext(out var uid, out _, out var sprite))
         {
-            if (!TryComp(uid, out SpriteComponent? sprite))
-                continue;
-
             if (!sprite.Visible)
                 continue;
             _sprite.SetVisible((uid, sprite), false);

@@ -30,11 +30,10 @@
 
         <Label Name="AuditLabel" Access="Public" Text="Last audit: no payout recorded" StyleClasses="LabelSubText" />
 
-        <GridContainer Columns="2" HorizontalExpand="True">
+        <BoxContainer Orientation="Horizontal" SeparationOverride="6">
             <Button Name="ApproveLandingButton" Access="Public" Text="Approve Landing" HorizontalExpand="True" />
-            <Button Name="SkipContractButton" Access="Public" Text="Skip Contract" HorizontalExpand="True" />
             <Button Name="ReleaseShuttleButton" Access="Public" Text="Release Shuttle" HorizontalExpand="True" />
             <Button Name="RequestPickupButton" Access="Public" Text="Request Pickup" HorizontalExpand="True" />
-        </GridContainer>
+        </BoxContainer>
     </BoxContainer>
 </controls:HospitalEmergencyComputerWindow>

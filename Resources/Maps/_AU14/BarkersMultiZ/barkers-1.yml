@@ -7742,13 +7742,6 @@ entities:
     - type: Transform
       pos: 123.5,-61.5
       parent: 1
-- proto: AU14AnalyzerMachineWeYu
-  entities:
-  - uid: 2290
-    components:
-    - type: Transform
-      pos: 113.5,-74.5
-      parent: 1
 - proto: AU14CashSnackMachine
   entities:
   - uid: 1903
@@ -15101,7 +15094,7 @@ entities:
     - type: Transform
       pos: 95.350845,-94.4356
       parent: 1
-- proto: ComputerObjectivesWeYu
+- proto: ComputerObjectivesScientist
   entities:
   - uid: 1712
     components:

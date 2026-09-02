@@ -9,7 +9,6 @@
     state: icon
   - type: Clothing
     sprite: _CMU14/Yautja/bracer.rsi
-  - type: YautjaTechItem
   - type: YautjaBracer
     charge: 3000
     maxCharge: 3000
@@ -133,11 +132,9 @@
   - type: YautjaBadBloodGearChoice
   - type: YautjaBracer
     enableRecall: false
-    enableRaiseThrall: true
-    maxRaiseThrall: 3
-    cloakDuration: 8
-    cloakCooldown: 30
-    cloakWarningBefore: 3
+    cloakDuration: 20
+    cloakCooldown: 20
+    cloakWarningBefore: 5
     cloakWarningSound:
       collection: CMUYautjaCloakWarning
   - type: ContainerContainer
@@ -251,7 +248,6 @@
     - Suitstorage
   - type: Item
     size: Small
-  - type: YautjaTechItem
   - type: Tag
     tags:
     - GasMask
@@ -445,7 +441,6 @@
     quickEquip: false
     slots:
     - back
-  - type: YautjaTechItem
   - type: ThermalCloak
     grantAction: false
     opacity: 0.02
@@ -641,23 +636,11 @@
       fireSound:
         path: /Audio/_CMU14/Yautja/Weapons/Plasma/pred_plasmacaster_fire.wav
     - name: cmu-yautja-caster-mode-lethal
-      projectile: CMUYautjaBadBloodCasterLethalBolt
+      projectile: CMUYautjaCasterLethalBolt
       powerCost: 100
       cooldown: 20
       fireSound:
         path: /Audio/_CMU14/Yautja/Weapons/Plasma/pred_lasercannon.wav
-    #- name: cmu-yautja-caster-mode-immobilizer # disabled pending retune
-    #  projectile: CMUYautjaCasterImmobilizerBolt
-    #  powerCost: 150
-    #  cooldown: 15
-    #  fireSound:
-    #    path: /Audio/_CMU14/Yautja/Weapons/Plasma/pulse.wav
-    #- name: cmu-yautja-caster-mode-eradicator # disabled pending retune
-    #  projectile: CMUYautjaCasterEradicatorBolt
-    #  powerCost: 1000
-    #  cooldown: 30
-    #  fireSound:
-    #    path: /Audio/_CMU14/Yautja/Weapons/Plasma/pulse.wav
 
 - type: entity
   parent: [ BaseItem, RMCBaseMeleeWeapon ]
@@ -673,7 +656,6 @@
     sprite: _CMU14/Yautja/wrist_blades.rsi
     size: Small
   - type: YautjaTechItem
-  - type: CMUShrapnelExtractor
   - type: Prying
     speedModifier: 1.5
     pryPowered: true
@@ -726,7 +708,6 @@
     sprite: _CMU14/Yautja/scimitar.rsi
     size: Large
   - type: YautjaTechItem
-  - type: CMUShrapnelExtractor
   - type: Prying
     speedModifier: 1.5
     pryPowered: true
@@ -1080,11 +1061,9 @@
   suffix: Yautja, Filled
   components:
   - type: Storage
+    maxItemSize: Small
     grid:
-    - 0,0,15,1
-    whitelist:
-      components:
-      - YautjaMedicalItem
+    - 0,0,7,1
   - type: StorageFill
     contents:
     - id: CMUYautjaAdvancedBruisePack
@@ -1109,7 +1088,6 @@
   - type: Item
     size: Small
     sprite: _CMU14/Yautja/yautja_items.rsi
-  - type: YautjaTechItem
   - type: Storage
     maxItemSize: Small
     grid:
@@ -2049,8 +2027,8 @@
         amount: 4
       - id: CMUYautjaCommunicator
         amount: 2
-      # - id: CMUYautjaOverseerCommunicator
-      #   amount: 1
+      - id: CMUYautjaOverseerCommunicator
+        amount: 1
       - id: CMUYautjaBadBloodCommunicator
         amount: 1
       - id: CMUYautjaStrandedCommunicator

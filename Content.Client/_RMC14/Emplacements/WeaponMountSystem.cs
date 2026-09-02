@@ -3,6 +3,7 @@ using Content.Shared._RMC14.Weapons.Ranged.Overheat;
 using Content.Shared.Foldable;
 using Content.Shared.Weapons.Ranged.Events;
 using Robust.Client.GameObjects;
+using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 
 namespace Content.Client._RMC14.Emplacements;
 
@@ -98,9 +99,9 @@ public sealed partial class WeaponMountSystem : SharedWeaponMountSystem
 
         // Set the draw depth based on the mount's assembly/folded state
         if (mount.Comp.MountedEntity == null || foldable != null && foldable.IsFolded)
-            _sprite.SetDrawDepth(mountSprite, (int) mount.Comp.EmptyDrawDepth);
+            _sprite.SetDrawDepth(mountSprite, (int)DrawDepth.Items);
         else
-            _sprite.SetDrawDepth(mountSprite, (int) mount.Comp.OccupiedDrawDepth);
+            _sprite.SetDrawDepth(mountSprite, (int)DrawDepth.Mobs);
     }
 
     /// <summary>

@@ -117,7 +117,6 @@
     - CMXenoLurker
     - CMXenoSpitter
     - CMXenoWarrior
-    - CMXenoBull # CMU14
     evolvesToWithoutPoints:
     - CMXenoQueen
   - type: Evasion

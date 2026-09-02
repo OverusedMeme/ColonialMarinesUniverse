@@ -35,13 +35,13 @@
     prefix: au14-job-prefix-govfordspilot
   - type: TacticalMapIcon
     icon:
-      sprite: /Textures/_CMU14/Interface/cmugovforblips.rsi
-      state: po
+      sprite: /Textures/_AU14/Interface/au14govforjobicons.rsi
+      state: govfor_po
   roundForceComponents:
     OPFOR:
     - type: TacticalMapIcon
       icon:
-        sprite: /Textures/_CMU14/Interface/cmuopforblips.rsi
+        sprite: /Textures/_AU14/Interface/au14opforjobicons.rsi
         state: po
     RMC:
     - type: Skills
@@ -109,12 +109,6 @@
   ranks:
     RMCRankCivilian: []
   chevrons:
-    RMCRankSecondLT:
-      entity: AU14ChevronSecondLT
-      requirements:
-      - !type:RoleTimeRequirement
-        role: AU14JobGOVFORDSPilot
-        time: 90000 #25 hours
     RMCRankChiefWarrantOfficer3:
       entity: AU14ChevronUSCMChiefWarrantOfficer3
       requirements:

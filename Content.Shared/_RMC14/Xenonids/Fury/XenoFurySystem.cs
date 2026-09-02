@@ -35,7 +35,7 @@ public sealed partial class XenoFurySystem : EntitySystem
 
         foreach (var ent in args.HitEntities)
         {
-            if (_xeno.CanGainRewardsFromTarget(xeno, ent)) // CMU14: no rewards from vehicles
+            if (_xeno.CanAbilityAttackTarget(xeno, ent))
             {
                 validHit = true;
                 break;

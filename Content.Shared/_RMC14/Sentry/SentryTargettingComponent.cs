@@ -36,5 +36,4 @@ public sealed partial class SentryTargetingComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public HashSet<ProtoId<NpcFactionPrototype>> AllianceFriendlyNpcFactions = new();
-
 }

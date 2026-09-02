@@ -50,7 +50,7 @@ public sealed partial class XenoLifestealSystem : EntitySystem
         var found = false;
         foreach (var hit in args.HitEntities)
         {
-            if (!_xeno.CanGainRewardsFromTarget(xeno, hit)) // CMU14: no rewards from vehicles
+            if (!_xeno.CanAbilityAttackTarget(xeno, hit))
                 continue;
 
             found = true;
@@ -76,7 +76,7 @@ public sealed partial class XenoLifestealSystem : EntitySystem
         var lifesteal = xeno.Comp.BasePercentage;
         foreach (var hit in _targets)
         {
-            if (!_xeno.CanGainRewardsFromTarget(xeno, hit)) // CMU14: no rewards from vehicles
+            if (!_xeno.CanAbilityAttackTarget(xeno, hit))
                 continue;
 
             lifesteal += xeno.Comp.TargetIncreasePercentage;

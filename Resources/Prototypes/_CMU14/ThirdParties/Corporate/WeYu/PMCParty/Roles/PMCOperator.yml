@@ -132,7 +132,6 @@
   roundForce: WY
   roundRole: WYPMCPartyContractorM42A
   roundComponents:
-  - type: SniperWhitelist
   - type: NpcFactionMember
     factions:
     - AUWeYu

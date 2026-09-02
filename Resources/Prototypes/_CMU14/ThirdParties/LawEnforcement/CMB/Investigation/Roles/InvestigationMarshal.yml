@@ -58,8 +58,6 @@
   id: AU14GearCMBMarshalInvestigation
   equipment:
     id: AU14IDCardColonyCMBMarshal
-    eyes: CMGlassesSecurity
-    gloves: RMCHandsVeteran
     outerClothing: AU14CMBMarshalWindbreaker
     jumpsuit: AU14CMBUniform
     shoes: RMCBootsPMCFilled
@@ -69,9 +67,6 @@
     pocket2: AU14PouchIFAKFill
     back: RMCSatchelTSEPA
     ears: AU14CMBHeadsetOnlyCMB
-  storage:
-    back:
-    - RMCUniversalRecorder
 
 - type: entity
   parent: AU14BaseMobSpeciesOrganicCMB

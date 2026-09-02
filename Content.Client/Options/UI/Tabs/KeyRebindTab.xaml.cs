@@ -247,20 +247,6 @@ namespace Content.Client.Options.UI.Tabs
             AddHeader("ui-options-header-cmu-zlevels");
             AddButton(CMUKeyFunctions.CMUToggleShootDownZLevel);
 
-            AddHeader("ui-options-header-cmu-gunship");
-            AddButton(CMUKeyFunctions.CMUGunshipForward);
-            AddButton(CMUKeyFunctions.CMUGunshipBack);
-            AddButton(CMUKeyFunctions.CMUGunshipLeft);
-            AddButton(CMUKeyFunctions.CMUGunshipRight);
-            AddButton(CMUKeyFunctions.CMUGunshipRotateLeft);
-            AddButton(CMUKeyFunctions.CMUGunshipRotateRight);
-            AddButton(CMUKeyFunctions.CMUGunshipAscend);
-            AddButton(CMUKeyFunctions.CMUGunshipDescend);
-            AddButton(CMUKeyFunctions.CMUGunshipIncreaseThrust);
-            AddButton(CMUKeyFunctions.CMUGunshipDecreaseThrust);
-            AddButton(CMUKeyFunctions.CMUGunshipCycleCamera);
-            AddButton(CMUKeyFunctions.CMUGunshipTogglePanning);
-
             AddHeader("ui-options-header-rmc-xeno");
             AddButton(CMKeyFunctions.CMXenoWideSwing);
             AddButton(CMKeyFunctions.RMCXenoRest);
@@ -343,7 +329,6 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(EngineKeyFunctions.CameraRotateLeft);
             AddButton(EngineKeyFunctions.CameraRotateRight);
             AddButton(EngineKeyFunctions.CameraReset);
-            AddButton(ContentKeyFunctions.RotateCameraWithMouse);
             AddButton(ContentKeyFunctions.ZoomIn);
             AddButton(ContentKeyFunctions.ZoomOut);
             AddButton(ContentKeyFunctions.ResetZoom);

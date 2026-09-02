@@ -1,14 +1,5 @@
-- type: lorePrimer
-  id: AU14PrimerThreatApe
-  threattext: "You are a dangerous megafauna with high caloric needs, satiate your hunger."
-  KnowledgeLevelsGovforThreat:
-    "Threat Unknown": 1
-    "Distress traffic mentions aggressive unknown fauna near colony infrastructure.": 2
-    "Recovered comms indicate repeated massed strikes on soft logistics targets.": 3
-
-# Colony Fall
 - type: threat
-  id: ApeThreatCF
+  id: apethreatcf
   lorePrimer: AU14PrimerThreatApe
   roundstartspawns: apePartycf
   thirdpartyinterval: 9100
@@ -19,22 +10,17 @@
   winconditions:
   - KillAllColonistRule
   - KillAllApeRule
-  maxplayers: 45
+  minplayers: 400 # off
 
 - type: partySpawn
   id: apePartycf
   leadersToSpawn:
     CMUMobApe: 2
-  scalewithpop: true
+  scalewithpop: false
   spawnTogether: true
-  scaling:
-    CMUMobApe:
-      scale: 0.33
-      whenToBeginScaling: 25
 
-# Distress Signal
 - type: threat
-  id: ApeThreatDS
+  id: apethreat
   lorePrimer: AU14PrimerThreatApe
   roundstartspawns: apeParty
   whitelistedgamemodes:
@@ -45,11 +31,20 @@
   winconditions:
   - KillAllGovforRule
   - KillAllApeRule
-  maxplayers: 45
+  minplayers: 400 # off
+
 
 - type: partySpawn
   id: apeParty
   leadersToSpawn:
-    CMUMobApe: 12
+    CMUMobApe: 4
   scalewithpop: false
   spawnTogether: true
+
+- type: lorePrimer
+  id: AU14PrimerThreatApe
+  threattext: "You are a dangerous megafauna with high caloric needs, satiate your hunger."
+  KnowledgeLevelsGovforThreat:
+    "Threat Unknown": 1
+    "Distress traffic mentions aggressive unknown fauna near colony infrastructure.": 2
+    "Recovered comms indicate repeated massed strikes on soft logistics targets.": 3

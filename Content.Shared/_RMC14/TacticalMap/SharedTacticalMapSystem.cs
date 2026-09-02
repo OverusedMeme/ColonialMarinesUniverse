@@ -9,14 +9,13 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared._RMC14.TacticalMap;
 
-public abstract partial class SharedTacticalMapSystem : EntitySystem // CMU14 Class: Custom Factions
+public abstract partial class SharedTacticalMapSystem : EntitySystem
 {
     public const string MarinesFaction = "MARINES";
     public const string XenosFaction = "XENONIDS";
     public const string OpforFaction = "OPFOR";
     public const string GovforFaction = "GOVFOR";
     public const string ClfFaction = "CLF";
-    public const string WeYuFaction = "WEYU";
 
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private SharedUserInterfaceSystem _ui = default!;
@@ -50,12 +49,6 @@ public abstract partial class SharedTacticalMapSystem : EntitySystem // CMU14 Cl
         if (key.Contains("GOV"))
         {
             normalized = GovforFaction;
-            return true;
-        }
-
-        if (key.Contains("WEYU") || key == "WY")
-        {
-            normalized = WeYuFaction;
             return true;
         }
 
@@ -107,8 +100,6 @@ public abstract partial class SharedTacticalMapSystem : EntitySystem // CMU14 Cl
             ent.Comp.Opfor = true;
             ent.Comp.Govfor = true;
             ent.Comp.Clf = true;
-            ent.Comp.WeYu = true; // CMU14
-            ent.Comp.Abomination = true; // CMU14
             ent.Comp.LiveUpdate = true;
         }
 
@@ -174,11 +165,9 @@ public abstract partial class SharedTacticalMapSystem : EntitySystem // CMU14 Cl
         bool WantsOpfor() => faction == null || faction == OpforFaction;
         bool WantsGovfor() => faction == null || faction == GovforFaction;
         bool WantsClf() => faction == null || faction == ClfFaction;
-        bool WantsWeYu() => faction == null || faction == WeYuFaction;
-        var sensorsOnline = faction != null && _sensorTowers.HasOnlineSensorForFaction(faction);
 
         // Add marine blips if desired
-        AddIf(() => WantsMarines() || sensorsOnline, map.MarineBlips);
+        AddIf(WantsMarines, map.MarineBlips);
 
         // Add xeno blips/structures if desired
         if (WantsXenos())
@@ -188,10 +177,14 @@ public abstract partial class SharedTacticalMapSystem : EntitySystem // CMU14 Cl
         }
 
         // Add other factions only if desired
-        AddIf(() => WantsOpfor() || sensorsOnline, map.OpforBlips);
-        AddIf(() => WantsGovfor() || sensorsOnline, map.GovforBlips);
-        AddIf(() => WantsClf() || sensorsOnline, map.ClfBlips);
-        AddIf(WantsWeYu, map.WeYuBlips);
+        if (WantsOpfor())
+            AddIf(() => true, map.OpforBlips);
+
+        if (WantsGovfor())
+            AddIf(() => true, map.GovforBlips);
+
+        if (WantsClf())
+            AddIf(() => true, map.ClfBlips);
 
             // Ensure infrastructure (comms, sensors, tunnels) is always visible on computers
         // Track their entity ids so we can exclude them from enemy-sprite replacement.
@@ -271,8 +264,6 @@ public abstract partial class SharedTacticalMapSystem : EntitySystem // CMU14 Cl
                         isFriendly = map.GovforBlips.ContainsKey(id);
                     else if (up == "CLF")
                         isFriendly = map.ClfBlips.ContainsKey(id);
-                    else if (up == "WEYU")
-                        isFriendly = map.WeYuBlips.ContainsKey(id);
                 }
 
                 if (!isFriendly)
@@ -298,7 +289,6 @@ public abstract partial class SharedTacticalMapSystem : EntitySystem // CMU14 Cl
         lines.OpforLines = WantsOpfor() ? map.OpforLines : new();
         lines.GovforLines = WantsGovfor() ? map.GovforLines : new();
         lines.ClfLines = WantsClf() ? map.ClfLines : new();
-        lines.WeYuLines = WantsWeYu() ? map.WeYuLines : new();
         Dirty(computer, lines);
 
         var labels = EnsureComp<TacticalMapLabelsComponent>(computer);
@@ -307,7 +297,6 @@ public abstract partial class SharedTacticalMapSystem : EntitySystem // CMU14 Cl
         labels.OpforLabels = WantsOpfor() ? map.OpforLabels : new();
         labels.GovforLabels = WantsGovfor() ? map.GovforLabels : new();
         labels.ClfLabels = WantsClf() ? map.ClfLabels : new();
-        labels.WeYuLabels = WantsWeYu() ? map.WeYuLabels : new();
         Dirty(computer, labels);
     }
 
@@ -351,8 +340,6 @@ public abstract partial class SharedTacticalMapSystem : EntitySystem // CMU14 Cl
             return govforBlip;
         if (map.ClfBlips.TryGetValue(entityId, out var clfBlip))
             return clfBlip;
-        if (map.WeYuBlips.TryGetValue(entityId, out var weyuBlip))
-            return weyuBlip;
         return null;
     }
 }

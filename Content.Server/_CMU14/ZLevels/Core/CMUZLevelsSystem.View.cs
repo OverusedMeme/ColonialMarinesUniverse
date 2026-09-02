@@ -282,21 +282,12 @@ public sealed partial class CMUZLevelsSystem
 
     private void OnViewerMapUidChanged(Entity<CMUZLevelViewerComponent> ent, ref MapUidChangedEvent args)
     {
-        // MapUidChangedEvent can be raised while SharedTransformSystem is recursively
-        // changing an entire grid's map. Refreshing here may spawn or remove a probe
-        // eye and modify that transform hierarchy while it is still being enumerated.
-        // Force a full refresh on the next system update, after the transfer finishes.
-        _nextZLevelViewerUpdate = TimeSpan.Zero;
+        UpdateViewer(ent);
     }
 
     private void OnViewerParentChange(Entity<CMUZLevelViewerComponent> ent, ref EntParentChangedMessage args)
     {
-        // Parent changes are also raised while an entire grid is recursively
-        // transferred between maps. Updating immediately can add/remove probe
-        // eyes while that transform hierarchy is still being enumerated,
-        // producing invalid client prediction state. Refresh after the
-        // transfer for the same reason as OnViewerMapUidChanged above.
-        _nextZLevelViewerUpdate = TimeSpan.Zero;
+        UpdateViewer(ent);
     }
 
     public void RefreshZLevelViewer(EntityUid uid)

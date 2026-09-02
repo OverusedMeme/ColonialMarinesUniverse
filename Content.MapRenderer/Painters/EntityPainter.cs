@@ -59,10 +59,7 @@ public sealed class EntityPainter
             return;
         }
 
-        if (!_sEntityManager.TryGetComponent<TransformComponent>(entity.Owner, out var transform))
-            return;
-
-        var worldRotation = xformSystem.GetWorldRotation(transform);
+        var worldRotation = xformSystem.GetWorldRotation(entity.Owner);
         foreach (var layer in entity.Sprite.AllLayers)
         {
             if (!layer.Visible)

@@ -31,9 +31,6 @@
         hard: false
   - type: XenoWeeds
     level: 1
-  - type: NpcFactionMember # CMU14: hostile structure, valid sentry/turret target
-    factions:
-    - RMCXeno
   - type: RMCMesonsNonviewable
   - type: Clickable
   - type: XenoWeedsSpreading
@@ -413,9 +410,6 @@
   - type: XenoNestSurface
   - type: HiveMember
   - type: XenoFriendly
-  - type: NpcFactionMember # CMU14: hostile structure, valid sentry/turret target
-    factions:
-    - RMCXeno
   - type: Damageable
     damageContainer: StructuralXeno
   - type: Destructible

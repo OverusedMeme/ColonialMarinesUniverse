@@ -18,9 +18,6 @@
     base: resin
   - type: Damageable
     damageContainer: Inorganic
-  - type: NpcFactionMember
-    factions:
-    - Abomination
   - type: Destructible
     thresholds:
     - trigger:

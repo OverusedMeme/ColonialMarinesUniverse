@@ -1,7 +1,6 @@
 using System.Linq;
 using Content.Server.AU14.Ambassador;
 using Content.Server.AU14.Round;
-using Content.Server._CMU14.Chat; // CMU14
 using Content.Server._CMU14.Ops.ThirdParty;
 using Content.Server.Chat.Systems;
 using Content.Server.Popups;
@@ -124,15 +123,9 @@ public sealed partial class AdminConsoleSystem : EntitySystem
         if (Math.Abs(oldTax - clamped) > 0.01f)
         {
             var sound = new Robust.Shared.Audio.SoundPathSpecifier("/Audio/Announcements/announce.ogg");
-            //_chat.DispatchGlobalAnnouncement(
-            //    $"Colony sales tax has been set to {clamped:F0}%.",
-            //    "Administration",
-            //    playSound: true,
-            //    announcementSound: sound); // CMU14: xenos must not receive colony announcements
-            _chat.DispatchFilteredAnnouncement(
-                ColonyAnnouncements.Recipients(EntityManager), // CMU14
+            _chat.DispatchGlobalAnnouncement(
                 $"Colony sales tax has been set to {clamped:F0}%.",
-                sender: "Administration",
+                "Administration",
                 playSound: true,
                 announcementSound: sound);
         }
@@ -153,15 +146,9 @@ public sealed partial class AdminConsoleSystem : EntitySystem
         if (Math.Abs(oldTax - clamped) > 0.01f)
         {
             var sound = new Robust.Shared.Audio.SoundPathSpecifier("/Audio/Announcements/announce.ogg");
-            //_chat.DispatchGlobalAnnouncement(
-            //    $"Colony income tax has been set to {clamped:F0}%. This affects salary payouts and corporate withdrawals.",
-            //    "Administration",
-            //    playSound: true,
-            //    announcementSound: sound); // CMU14: xenos must not receive colony announcements
-            _chat.DispatchFilteredAnnouncement(
-                ColonyAnnouncements.Recipients(EntityManager), // CMU14
+            _chat.DispatchGlobalAnnouncement(
                 $"Colony income tax has been set to {clamped:F0}%. This affects salary payouts and corporate withdrawals.",
-                sender: "Administration",
+                "Administration",
                 playSound: true,
                 announcementSound: sound);
         }

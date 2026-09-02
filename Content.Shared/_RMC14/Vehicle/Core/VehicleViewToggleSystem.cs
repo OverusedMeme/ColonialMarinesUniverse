@@ -311,9 +311,10 @@ public sealed partial class VehicleViewToggleSystem : EntitySystem
         if (TerminatingOrDeleted(action))
             return;
 
-        // CMU14: detach from the entity the action is actually attached to; RemoveAction errors on unattached orphans
-        if (CompOrNull<ActionComponent>(action)?.AttachedEntity is { } attached)
-            _actions.RemoveAction(attached, action);
+        if (user is { } actionUser)
+            _actions.RemoveAction(actionUser, action);
+        else
+            _actions.RemoveAction(action);
 
         // The action entity is networked; client-side queued deletion causes prediction errors.
         if (_net.IsClient)

@@ -14,7 +14,7 @@ public sealed partial class DropshipWeaponPointComponent : Component
     public string AmmoContainerSlotId = "rmc_dropship_weapon_point_ammo_container_slot";
 
     [DataField, AutoNetworkedField]
-    public string DirOffset = string.Empty;
+    public string DirOffset;
 
     [DataField, AutoNetworkedField]
     public DropshipWeaponPointLocation? Location;

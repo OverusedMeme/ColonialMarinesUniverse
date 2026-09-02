@@ -1,5 +1,5 @@
-using Content.Shared.Camera;
-using Robust.Shared.Prototypes;
+using Content.Shared.DeviceNetwork;
+using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.List;
 
 namespace Content.Server.SurveillanceCamera;
 
@@ -7,6 +7,21 @@ namespace Content.Server.SurveillanceCamera;
 [Access(typeof(SurveillanceCameraSystem))]
 public sealed partial class SurveillanceCameraComponent : Component
 {
+    // List of active viewers. This is for bookkeeping purposes,
+    // so that when a camera shuts down, any entity viewing it
+    // will immediately have their subscription revoked.
+    [ViewVariables]
+    public HashSet<EntityUid> ActiveViewers { get; } = new();
+
+    // Monitors != Viewers, as viewers are entities that are tied
+    // to a player session that's viewing from this camera
+    //
+    // Monitors are grouped sets of viewers, and may be
+    // completely different monitor types (e.g., monitor console,
+    // AI, etc.)
+    [ViewVariables]
+    public HashSet<EntityUid> ActiveMonitors { get; } = new();
+
     // If this camera is active or not. Deactivating a camera
     // will not allow it to obtain any new viewers.
     [ViewVariables]
@@ -27,6 +42,7 @@ public sealed partial class SurveillanceCameraComponent : Component
     [DataField("networkSet")]
     public bool NetworkSet { get; set; }
 
-    [DataField("setupAvailableNetworks")]
-    public List<ProtoId<CameraNetworkPrototype>> AvailableNetworks { get; private set; } = new();
+    // This has to be device network frequency prototypes.
+    [DataField("setupAvailableNetworks", customTypeSerializer:typeof(PrototypeIdListSerializer<DeviceFrequencyPrototype>))]
+    public List<string> AvailableNetworks { get; private set; } = new();
 }

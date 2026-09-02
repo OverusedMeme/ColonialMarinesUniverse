@@ -9,7 +9,7 @@
 - type: entity
   parent: AU14IDCardBaseCivilianNoIFF
   id: AU14IDCardCLFFakeJournalist
-  name: journalist ID card
+  name: jurnalist ID card
   components:
   - type: JobTitleChanger
     jobTitle: Journalist
@@ -25,7 +25,7 @@
 - type: entity
   parent: AU14IDCardBaseCivilianNoIFF
   id: AU14IDCardCLFFakeJournalistIndependent
-  name: independent journalist ID card
+  name: indepentent journalist ID card
   components:
   - type: JobTitleChanger
     jobTitle: Independent Journalist
@@ -33,7 +33,7 @@
 - type: entity
   parent: AU14IDCardBaseCivilianNoIFF
   id: AU14IDCardCLFFakeFreightSystemsSpecialist
-  name: freight systems specialist ID card
+  name: frieght systems specialist ID card
   components:
   - type: JobTitleChanger
     jobTitle: Freight Systems Specialist
@@ -41,7 +41,7 @@
 - type: entity
   parent: AU14IDCardBaseCivilianNoIFF
   id: AU14IDCardCLFFakeEngineer
-  name: engineer ID card
+  name: enginneer ID card
   components:
   - type: JobTitleChanger
     jobTitle: Engineer
@@ -89,7 +89,7 @@
 - type: entity
   parent: AU14IDCardColonyEmergencyResponseOfficer
   id: AU14IDCardCLFFakeEmergencyResponseOfficerFirefighter
-  name: emergency response firefighter ID card
+  name: emergency response firefihgter ID card
   components:
   - type: JobTitleChanger
     jobTitle: Emergency Response Firefighter

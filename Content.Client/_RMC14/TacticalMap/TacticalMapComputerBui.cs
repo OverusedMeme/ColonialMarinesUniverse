@@ -132,7 +132,7 @@ public sealed partial class TacticalMapComputerBui(EntityUid owner, Enum uiKey) 
         Window.Wrapper.Map.Lines.Clear();
 
         var lines = EntMan.GetComponentOrNull<TacticalMapLinesComponent>(Owner);
-        if (lines != null) // CMU14 Statement
+        if (lines != null)
         {
             // Determine faction view for this computer
             var computerComp = EntMan.GetComponentOrNull<TacticalMapComputerComponent>(Owner);
@@ -153,16 +153,13 @@ public sealed partial class TacticalMapComputerBui(EntityUid owner, Enum uiKey) 
                 Window.Wrapper.Map.Lines.AddRange(lines.GovforLines);
             if (WantsClf())
                 Window.Wrapper.Map.Lines.AddRange(lines.ClfLines);
-            bool WantsWeYu() => faction == "WEYU";
-            if (WantsWeYu())
-                Window.Wrapper.Map.Lines.AddRange(lines.WeYuLines);
         }
 
         if (_refreshed)
             return;
 
         // Canvas initial content
-        if (lines != null) // CMU14 Statement
+        if (lines != null)
         {
             var computerComp = EntMan.GetComponentOrNull<TacticalMapComputerComponent>(Owner);
             var faction = computerComp?.Faction?.ToUpperInvariant();
@@ -182,9 +179,6 @@ public sealed partial class TacticalMapComputerBui(EntityUid owner, Enum uiKey) 
                 Window.Wrapper.Canvas.Lines.AddRange(lines.GovforLines);
             if (WantsClf())
                 Window.Wrapper.Canvas.Lines.AddRange(lines.ClfLines);
-            bool WantsWeYuCanvas() => faction == "WEYU";
-            if (WantsWeYuCanvas())
-                Window.Wrapper.Canvas.Lines.AddRange(lines.WeYuLines);
         }
 
         _refreshed = true;
@@ -265,7 +259,7 @@ public sealed partial class TacticalMapComputerBui(EntityUid owner, Enum uiKey) 
             return;
 
         var labels = EntMan.GetComponentOrNull<TacticalMapLabelsComponent>(Owner);
-        if (labels != null) // CMU14 Statement
+        if (labels != null)
         {
             // Merge labels according to computer faction
             var computerComp = EntMan.GetComponentOrNull<TacticalMapComputerComponent>(Owner);
@@ -308,13 +302,6 @@ public sealed partial class TacticalMapComputerBui(EntityUid owner, Enum uiKey) 
             if (WantsClf())
             {
                 foreach (var kv in labels.ClfLabels)
-                {
-                    allLabels[kv.Key] = kv.Value;
-                }
-            }
-            if (faction == "WEYU")
-            {
-                foreach (var kv in labels.WeYuLabels)
                 {
                     allLabels[kv.Key] = kv.Value;
                 }

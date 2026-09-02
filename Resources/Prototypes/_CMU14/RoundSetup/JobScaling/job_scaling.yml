@@ -23,8 +23,7 @@
 - type: jobScale
   id: DefaultGovforOpforScale
   jobs:
-    # --- THREATS ---
-    # --- GOVFOR  ---
+    # --- GOVFOR ---
     AU14JobGOVFORSquadRifleman:
       scale: 0.5    # 2 slots
       whenToBeginScaling: 1
@@ -64,8 +63,7 @@
 - type: jobScale
   id: DefaultDistressScale
   jobs:
-    # --- THREATS ---
-    # --- GOVFOR  ---
+    # --- GOVFOR ---
     AU14JobGOVFORSquadRifleman:
       scale: 1
       whenToBeginScaling: 1
@@ -100,8 +98,13 @@
       scale: 0.01
       whenToBeginScaling: 40
       maximum: 1
-    # --- THREATS ---
-    # --- GOVFOR  ---
+    AU14JobCLFGuerilla:
+      scale: 0.025
+      whenToBeginScaling: 40
+      benchmark: 6
+    AU14JobCLFPhysician:
+      scale: 0.02
+      whenToBeginScaling: 40
     AU14JobGOVFORSquadRifleman:
       scale: 0.018
       whenToBeginScaling: 40
@@ -130,11 +133,3 @@
     AU14JobGOVFORWorkingJoe:
       scale: 0.034
       whenToBeginScaling: 50
-    # --- CLF    ---
-    AU14JobCLFGuerilla:
-      scale: 0.025
-      whenToBeginScaling: 40
-      benchmark: 6
-    AU14JobCLFPhysician:
-      scale: 0.02
-      whenToBeginScaling: 40

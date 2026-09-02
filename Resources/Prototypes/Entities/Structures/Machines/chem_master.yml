@@ -93,7 +93,6 @@
   - type: SolutionContainerManager
     solutions:
       buffer:
-        maxVol: 1000
         canReact: false
   - type: DumpableSolution
     solution: buffer

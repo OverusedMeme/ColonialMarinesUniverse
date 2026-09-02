@@ -1,5 +1,5 @@
 - type: threat
-  id: CultistThreatCF
+  id: cultistThreat
   lorePrimer: AU14PrimerThreatCultist
   roundstartspawns: cultistPartyThreat
   thirdpartyinterval: 9100
@@ -10,8 +10,18 @@
   winconditions:
     - KillAllColonistRule
     - KillAllXenoRule
-  spawnDelayMin: 1200
-  spawnDelayMax: 2400
+
+- type: threat
+  id: cultistThreatOnMarker
+  roundstartspawns: cultistPartyThreatOnMarkers
+  thirdpartyinterval: 9100
+  whitelistedgamemodes:
+  - ColonyFall
+  blacklistedgamemodes:
+  - DistressSignal
+  winconditions:
+    - KillAllColonistRule
+    - KillAllXenoRule
 
 - type: partySpawn
   id: cultistPartyThreat
@@ -20,11 +30,6 @@
   gruntsToSpawn:
     cultistJob: 3
   spawnTogether: true
-  scaling:
-    cultistJob:
-      scale: 0.03
-      benchmark: 4
-      whenToBeginScaling: 50
 
 - type: partySpawn
   id: cultistParty
@@ -81,6 +86,25 @@
   maxplayers: 200
   GhostsNeeded: 3
   roundstart: true
+
+- type: partySpawn
+  id: cultistPartyThreatOnMarkers
+  leadersToSpawn:
+    CMXenoQueen: 1
+  gruntsToSpawn:
+    cultistJob: 3
+  spawnTogether: true
+  scaling:
+#   CMXenoQueen:
+#     scale: 0.05
+#     whenToBeginScaling: 50
+    cultistJob:
+      scale: 0.03
+      benchmark: 4
+      whenToBeginScaling: 50
+  Markers:
+    Member: cultcfmarker
+    Leader: cultcfmarker
 
 - type: lorePrimer
   id: AU14PrimerThreatCultist

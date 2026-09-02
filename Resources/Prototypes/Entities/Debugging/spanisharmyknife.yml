@@ -26,15 +26,15 @@
   - type: MultipleTool
     statusShowBehavior: true
     entries:
-      - behavior: [ Prying ] # CMU14
+      - behavior: Prying
         useSound: /Audio/Items/jaws_pry.ogg
         changeSound: /Audio/Items/change_jaws.ogg
-      - behavior: [ Cutting ] # CMU14
+      - behavior: Cutting
         useSound: /Audio/Items/jaws_cut.ogg
         changeSound: /Audio/Items/change_jaws.ogg
-      - behavior: [ Screwing ] # CMU14
+      - behavior: Screwing
         useSound: /Audio/Items/drill_use.ogg
         changeSound: /Audio/Items/change_drill.ogg
-      - behavior: [ Anchoring ] # CMU14
+      - behavior: Anchoring
         useSound: /Audio/Items/drill_use.ogg
         changeSound: /Audio/Items/change_drill.ogg
