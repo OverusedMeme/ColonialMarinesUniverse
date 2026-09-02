@@ -9,7 +9,9 @@ using Content.Shared._AU14.Marines.Roles.Chevrons;
 using Content.Server.Ghost.Roles.Components;
 using Robust.Shared.Utility;
 using Robust.Server.Player;
+using Robust.Shared.Enums;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 using Content.Shared.AU14.util;
 using Content.Shared._RMC14.Marines.Roles.Ranks;
 using Content.Shared.Preferences;
@@ -22,6 +24,8 @@ namespace Content.Server._AU14.Marines.Roles.Chevrons;
 
 public sealed partial class ChevronSystem : EntitySystem
 {
+    private static readonly TimeSpan PlaytimeRetryDelay = TimeSpan.FromSeconds(10);
+
     [Dependency] private PlayTimeTrackingManager _tracking = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IEntityManager _entityManager = default!;
@@ -52,8 +56,24 @@ public sealed partial class ChevronSystem : EntitySystem
 
         if (!_tracking.TryGetTrackerTimes(ev.Player, out var playTimes))
         {
-            Log.Error($"Playtimes weren't ready yet for {ev.Player} on roundstart!");
-            playTimes ??= new Dictionary<string, TimeSpan>();
+            var mob = ev.Mob;
+            var jobId = ev.JobId;
+            var profile = ev.Profile;
+            var player = ev.Player;
+            Timer.Spawn(PlaytimeRetryDelay, () =>
+            {
+                if (Deleted(mob) || player.Status != SessionStatus.Connected)
+                    return;
+
+                if (!_tracking.TryGetTrackerTimes(player, out var retryTimes))
+                {
+                    Log.Error($"Playtimes weren't ready for {player} after retry!");
+                    return;
+                }
+
+                TrySpawnChevronForMob(mob, jobId, profile, retryTimes);
+            });
+            return;
         }
 
         TrySpawnChevronForMob(ev.Mob, ev.JobId, ev.Profile, playTimes);
@@ -118,11 +138,10 @@ public sealed partial class ChevronSystem : EntitySystem
             playTimes = new Dictionary<string, TimeSpan>();
 
         var profile = pending.Profile;
-        RemComp<ChevronPendingComponent>(mob);
-
         var platoon = ResolvePlatoonFromMobFaction(mob);
         var chevronMap = ResolveChevronMapForPlatoon(jobPrototype, platoon);
-        TrySpawnFirstValidChevron(chevronMap, profile, playTimes, mob);
+        TrySpawnFirstValidChevron(chevronMap, profile, playTimes, mob, pending.JobId, platoon?.ID);
+        RemComp<ChevronPendingComponent>(mob);
     }
 
     /// <summary>
@@ -150,7 +169,7 @@ public sealed partial class ChevronSystem : EntitySystem
 
         if (HasEquippedJumpsuit(mob))
         {
-            TrySpawnFirstValidChevron(chevronMap, profile, playTimes, mob);
+            TrySpawnFirstValidChevron(chevronMap, profile, playTimes, mob, jobId, platoon?.ID);
         }
         else
         {
@@ -293,33 +312,42 @@ public sealed partial class ChevronSystem : EntitySystem
         Dictionary<string, ChevronDefinition>? chevronMap,
         HumanoidCharacterProfile? profile,
         Dictionary<string, TimeSpan> playTimes,
-        EntityUid mob)
+        EntityUid mob,
+        string jobId,
+        string? platoonId)
     {
         if (chevronMap == null)
             return;
 
+        // Try preferred rank first
+        var preferredRankId = platoonId != null ? profile?.GetRankPreference(jobId, platoonId) : null;
+
+        if (preferredRankId != null && chevronMap.TryGetValue(preferredRankId, out var preferredDef) && IsChevronValid(preferredDef, profile, playTimes))
+        {
+            SpawnChevron(preferredDef, mob);
+            return;
+        }
+
+        // Fall back to first valid (auto)
         foreach (var (_, chevronDef) in chevronMap)
         {
-            var failed = false;
-
-            if (chevronDef.Requirements != null)
-            {
-                foreach (var req in chevronDef.Requirements)
-                {
-                    if (!req.Check(_entityManager, _prototypes, profile, playTimes, out FormattedMessage? _))
-                    {
-                        failed = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!failed)
+            if (IsChevronValid(chevronDef, profile, playTimes))
             {
                 SpawnChevron(chevronDef, mob);
                 return;
             }
         }
+    }
+
+    private bool IsChevronValid(ChevronDefinition chevronDef, HumanoidCharacterProfile? profile, Dictionary<string, TimeSpan> playTimes)
+    {
+        if (chevronDef.Requirements == null) return true;
+        foreach (var req in chevronDef.Requirements)
+        {
+            if (!req.Check(_entityManager, _prototypes, profile, playTimes, out FormattedMessage? _))
+                return false;
+        }
+        return true;
     }
 
     private void SpawnChevron(ChevronDefinition chevronDef, EntityUid mob)
@@ -352,22 +380,21 @@ public sealed partial class ChevronSystem : EntitySystem
         if (chevronMap == null)
             return null;
 
+        // Try preferred rank first
+        var preferredRankId = platoon != null ? profile?.GetRankPreference(jobId, platoon.ID) : null;
+        if (preferredRankId != null &&
+            chevronMap.TryGetValue(preferredRankId, out var preferredDef) &&
+            IsChevronValid(preferredDef, profile, playTimes) &&
+            _prototypes.TryIndex<RankPrototype>(preferredRankId, out var preferredProto))
+        {
+            return preferredProto;
+        }
+
+        // Fall back to first valid
         foreach (var (rankId, chevronDef) in chevronMap)
         {
-            var failed = false;
-            if (chevronDef.Requirements != null)
-            {
-                foreach (var req in chevronDef.Requirements)
-                {
-                    if (!req.Check(_entityManager, _prototypes, profile, playTimes, out FormattedMessage? _))
-                    {
-                        failed = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!failed && _prototypes.TryIndex<RankPrototype>(rankId, out var rankProto))
+            if (IsChevronValid(chevronDef, profile, playTimes) &&
+                _prototypes.TryIndex<RankPrototype>(rankId, out var rankProto))
                 return rankProto;
         }
 
