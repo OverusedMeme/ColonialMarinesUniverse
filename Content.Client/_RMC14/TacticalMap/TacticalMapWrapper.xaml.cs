@@ -891,6 +891,24 @@ public sealed partial class TacticalMapWrapper : Control
             }
         }
 
+        foreach ((int id, TacticalMapBlip blip) in userComp.WeYuBlips) // CMU14
+        {
+            if (id == playerNetId)
+            {
+                playerIndices = blip.Indices;
+                return true;
+            }
+        }
+
+        foreach ((int id, TacticalMapBlip blip) in userComp.AbominationBlips) // CMU14
+        {
+            if (id == playerNetId)
+            {
+                playerIndices = blip.Indices;
+                return true;
+            }
+        }
+
         return false;
     }
 
